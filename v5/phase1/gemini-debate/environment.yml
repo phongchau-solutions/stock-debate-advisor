@@ -1,0 +1,17 @@
+name: gemini-debate
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - pyautogen>=0.2.0
+      - google-generativeai>=0.3.0
+      - langchain>=0.1.0
+      - langchain-google-genai>=0.0.5
+      - streamlit>=1.28.0
+      - pandas>=2.0.0
+      - numpy>=1.24.0
+      - python-dotenv>=1.0.0
+      - pyyaml>=6.0
