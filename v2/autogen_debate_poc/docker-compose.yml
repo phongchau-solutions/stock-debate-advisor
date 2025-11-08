@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  autogen-debate-poc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: autogen-financial-debate
+    ports:
+      - "8501:8501"
+    environment:
+      - PYTHONPATH=/app
+      # Add your API keys here or use .env file
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - VIETCAP_API_KEY=${VIETCAP_API_KEY:-}
+    volumes:
+      # Mount logs directory for persistence
+      - ./logs:/app/logs
+      # Mount .env file if it exists
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - autogen-network
+
+networks:
+  autogen-network:
+    driver: bridge
