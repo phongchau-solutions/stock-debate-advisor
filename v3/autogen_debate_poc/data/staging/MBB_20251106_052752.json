@@ -1,0 +1,9 @@
+{
+  "symbol": "MBB",
+  "price": 23900.0,
+  "PE_ratio": 21.5,
+  "ROE": 19.0,
+  "dividend_yield": 6.5,
+  "volume": 15068990,
+  "ohlcv": [
+    {
