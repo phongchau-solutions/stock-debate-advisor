@@ -1,0 +1,29 @@
+service:
+  name: agentic-financial-suite
+
+endpoints:
+  gemini_api_url: "https://gemini.api.example/v1/generate"
+  autogen_endpoint: "http://autogen.local"
+  milvus: "milvus:19530"
+  postgres: "postgres://user:pass@postgres:5432/agentic"
+  minio: "http://minio:9000"
+  # Prefer trading.vietcap GraphQL + OHLC endpoints (no API key required)
+  vietcap_api_base: "https://trading.vietcap.com.vn"
+  vietcap_graphql_endpoint: "/data-mt/graphql"
+  vietcap_ohlc_endpoint: "/api/chart/OHLCChart/gap-chart"
+  # Legacy REST fallbacks (may be gated)
+  vietcap_balance_path: "/market/balance-sheet"
+  vietcap_price_path: "/market/stocks"
+  vietcap_indexes_path: "/market/indices"
+
+policies:
+  embedding_primary: "gemini_embeddings"
+  embedding_fallback: "sentence_transformers"
+  gemini_confidence_threshold: 0.6
+
+observability:
+  otel_collector: "http://otel-collector:4317"
+
+security:
+  vault_addr: "https://vault.local"
+  hash_provenance: true

@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: agentic
+      POSTGRES_USER: agentic
+      POSTGRES_PASSWORD: agentic
+    ports:
+      - "5432:5432"
+
+  minio:
+    image: minio/minio:latest
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    ports:
+      - "9000:9000"
+
+  milvus:
+    image: milvusdb/milvus:v2.2.9
+    ports:
+      - "19530:19530"
+
+  kafka:
+    image: bitnami/kafka:latest
+    ports:
+      - "9092:9092"
+
+  airflow:
+    image: apache/airflow:2.7.1
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    ports:
+      - "8080:8080"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.78.0
+    command: ["--config", "/etc/otel-collector-config.yaml"]
