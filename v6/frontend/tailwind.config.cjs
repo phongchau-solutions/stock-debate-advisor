@@ -5,34 +5,30 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Light mode - Monetary/Financial palette
+        // Minimal black and white palette
         background: 'hsl(0 0% 99%)',
-        foreground: 'hsl(200 20% 8%)',
-        muted: 'hsl(200 15% 95%)',
-        'muted-foreground': 'hsl(200 15% 40%)',
+        foreground: 'hsl(0 0% 0%)',
+        muted: 'hsl(0 0% 96%)',
+        'muted-foreground': 'hsl(0 0% 40%)',
         card: 'hsl(0 0% 100%)',
-        border: 'hsl(200 20% 90%)',
+        border: 'hsl(0 0% 30%)',  // Dark borders for white boxes
         
-        // Primary (Deep Blue - Banking/Trust)
-        primary: 'hsl(200 80% 35%)',
+        // Minimalist colors (mostly grayscale with subtle accents)
+        primary: 'hsl(0 0% 20%)',
         'primary-foreground': 'hsl(0 0% 100%)',
-        'primary-light': 'hsl(200 85% 92%)',
+        'primary-light': 'hsl(0 0% 92%)',
         
-        // Success (Prosperity Green)
-        success: 'hsl(120 65% 45%)',
-        'success-light': 'hsl(120 65% 92%)',
+        success: 'hsl(0 0% 30%)',   // Dark gray instead of green
+        'success-light': 'hsl(0 0% 94%)',
         
-        // Warning (Gold - Wealth)
-        warning: 'hsl(45 95% 52%)',
-        'warning-light': 'hsl(45 95% 92%)',
+        warning: 'hsl(0 0% 40%)',   // Medium gray instead of gold
+        'warning-light': 'hsl(0 0% 95%)',
         
-        // Destructive (Alert Red)
-        destructive: 'hsl(0 80% 55%)',
-        'destructive-light': 'hsl(0 80% 92%)',
+        destructive: 'hsl(0 0% 50%)',  // Gray instead of red
+        'destructive-light': 'hsl(0 0% 96%)',
         
-        // Accent (Teal - Growth)
-        accent: 'hsl(180 70% 45%)',
-        'accent-light': 'hsl(180 70% 92%)',
+        accent: 'hsl(0 0% 25%)',    // Dark gray instead of teal
+        'accent-light': 'hsl(0 0% 93%)',
       },
       borderRadius: {
         'xl': '12px',
@@ -46,9 +42,9 @@ module.exports = {
         'card': '0 4px 12px rgba(0, 0, 0, 0.08)',
       },
       backgroundImage: {
-        'gradient-primary': 'linear-gradient(135deg, hsl(200 80% 35%) 0%, hsl(200 70% 45%) 100%)',
-        'gradient-soft': 'linear-gradient(135deg, hsl(200 85% 92%) 0%, hsl(180 70% 92%) 100%)',
-        'gradient-gold': 'linear-gradient(135deg, hsl(45 95% 52%) 0%, hsl(40 90% 45%) 100%)',
+        'gradient-primary': 'linear-gradient(135deg, hsl(0 0% 20%) 0%, hsl(0 0% 30%) 100%)',
+        'gradient-soft': 'linear-gradient(135deg, hsl(0 0% 94%) 0%, hsl(0 0% 92%) 100%)',
+        'gradient-gold': 'linear-gradient(135deg, hsl(0 0% 40%) 0%, hsl(0 0% 35%) 100%)',
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',
