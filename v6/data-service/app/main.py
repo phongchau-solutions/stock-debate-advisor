@@ -1,5 +1,6 @@
 """
 FastAPI application for Data Service.
+Provides REST API for financial data retrieval and management.
 """
 from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,11 +8,15 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, timedelta
 import logging
+from pathlib import Path
 
 from app.db.database import get_db_session, engine
+import os
+import json
 from app.db import models
-from app.clients.vietcap_client import VietCapClient
-from app.crawlers.news_crawler import NewsCrawler
+from app.clients.yahoo_finance_client import YahooFinanceClient
+from app.services.financial_data_service import FinancialDataService
+from app.api import v2_endpoints
 
 # Create tables
 models.Base.metadata.create_all(bind=engine)
@@ -19,8 +24,8 @@ models.Base.metadata.create_all(bind=engine)
 # Initialize FastAPI app
 app = FastAPI(
     title="Stock Debate Data Service",
-    description="Data service for fetching financial data and news",
-    version="1.0.0"
+    description="Comprehensive data service for financial data, news, and analysis using Yahoo Finance API",
+    version="2.0.0"
 )
 
 # CORS middleware
@@ -32,13 +37,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include v2 API routes
+app.include_router(v2_endpoints.router)
+
 # Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Clients
-vietcap_client = VietCapClient()
-news_crawler = NewsCrawler()
+
+# Local data mode
+LOCAL_DATA_MODE = os.getenv("LOCAL_DATA_MODE", "false").lower() == "true"
+
+# Clients and Services
+yahoo_client = YahooFinanceClient()
+financial_service = FinancialDataService(cache_dir=Path(__file__).parent.parent / 'data' / 'financial')
 
 
 @app.get("/")
@@ -57,26 +69,33 @@ async def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
 
 
+
 @app.get("/api/v1/financial/{symbol}")
 async def get_financial_data(
     symbol: str,
     db: Session = Depends(get_db_session)
 ):
     """Get financial data for a symbol."""
+    if LOCAL_DATA_MODE:
+        # Serve from local file if available
+        file_path = os.path.join(os.path.dirname(__file__), "../data/financial", f"{symbol}.json")
+        if os.path.exists(file_path):
+            with open(file_path, "r") as f:
+                return json.load(f)
+        else:
+            raise HTTPException(status_code=404, detail=f"Local data file not found for {symbol}")
     try:
         # Try to get from database first
         latest_data = db.query(models.FinancialData).filter(
             models.FinancialData.symbol == symbol
         ).order_by(models.FinancialData.created_at.desc()).first()
-        
         # If no data or data is old (>24 hours), fetch new data
         if not latest_data or (datetime.utcnow() - latest_data.created_at).total_seconds() > 86400:
-            logger.info(f"Fetching fresh financial data for {symbol}")
-            data = vietcap_client.get_all_financial_data(symbol)
-            
+            logger.info(f"Fetching fresh financial data for {symbol} from Yahoo Finance")
+            data = financial_service.fetch_and_cache(symbol)
             # Store in database
-            for data_type in ['balance_sheet', 'income_statement', 'cash_flow', 'metrics']:
-                if data.get(data_type):
+            for data_type in ['info', 'prices', 'quarterly', 'annual', 'metrics', 'dividends', 'splits']:
+                if data.get(data_type) and data[data_type]:
                     financial_record = models.FinancialData(
                         symbol=symbol,
                         data_type=data_type,
@@ -84,21 +103,16 @@ async def get_financial_data(
                     )
                     db.add(financial_record)
             db.commit()
-            
             return data
-        
         # Return cached data
         logger.info(f"Returning cached financial data for {symbol}")
         result = {}
         records = db.query(models.FinancialData).filter(
             models.FinancialData.symbol == symbol
         ).order_by(models.FinancialData.created_at.desc()).limit(10).all()
-        
         for record in records:
             result[record.data_type] = record.data
-        
         return result
-        
     except Exception as e:
         logger.error(f"Error fetching financial data: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -111,12 +125,22 @@ async def get_news(
     db: Session = Depends(get_db_session)
 ):
     """Get news articles for a symbol."""
+    if LOCAL_DATA_MODE:
+        file_path = os.path.join(os.path.dirname(__file__), "../data/news", f"{symbol}.json")
+        if os.path.exists(file_path):
+            with open(file_path, "r") as f:
+                data = json.load(f)
+                # Optionally limit articles
+                if "articles" in data:
+                    data["articles"] = data["articles"][:limit]
+                return data
+        else:
+            raise HTTPException(status_code=404, detail=f"Local news file not found for {symbol}")
     try:
         # Get from database
         articles = db.query(models.NewsArticle).filter(
             models.NewsArticle.symbol == symbol
         ).order_by(models.NewsArticle.created_at.desc()).limit(limit).all()
-        
         # If no recent articles, crawl new ones
         if not articles or (datetime.utcnow() - articles[0].created_at).total_seconds() > 3600:
             logger.info(f"Crawling fresh news for {symbol}")
@@ -199,7 +223,7 @@ async def trigger_crawl(symbol: str, db: Session = Depends(get_db_session)):
         logger.info(f"Triggering manual crawl for {symbol}")
         
         # Fetch financial data
-        financial_data = vietcap_client.get_all_financial_data(symbol)
+        financial_data = financial_service.fetch_and_cache(symbol)
         
         # Crawl news
         news_articles = news_crawler.crawl_all_sources(symbol, max_per_source=5)
@@ -248,15 +272,15 @@ async def get_company_info(symbol: str, db: Session = Depends(get_db_session)):
         ).first()
         
         if not company:
-            # Fetch from VietCap
-            data = vietcap_client.get_company_info(symbol)
+            # Fetch from Yahoo Finance
+            data = yahoo_client.get_ticker_info(symbol)
             company = models.CompanyInfo(
                 symbol=symbol,
-                name=data.get('name', ''),
+                name=data.get('longName', ''),
                 industry=data.get('industry', ''),
                 sector=data.get('sector', ''),
                 market_cap=data.get('marketCap'),
-                description=data.get('description', '')
+                description=data.get('longBusinessSummary', '')
             )
             db.add(company)
             db.commit()

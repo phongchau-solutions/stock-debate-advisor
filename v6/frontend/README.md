@@ -1,38 +1,30 @@
-# Stock Debate Advisor v6 Frontend
+## Stock Debate Advisor v6 Frontend
 
-This is the production frontend for Stock Debate Advisor v6, built with React, TypeScript, and Vite.
+Production-ready React + Vite + TypeScript frontend for the Stock Debate Advisor.
 
-## Getting Started
+### Features
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-2. Start the development server:
-   ```bash
-   npm run dev
-   ```
-3. Build for production:
-   ```bash
-   npm run build
-   ```
-4. Preview production build:
-   ```bash
-   npm run preview
-   ```
+- **Responsive layout** with `Header`, `Sidebar`, `Footer`, and routed pages for Financials, Stocks, Debate & Analysis, News, and Watchlist.
+- **Tailwind CSS** with **light/dark theme toggle** and **FontAwesome Free** icons.
+- **Jotai** state for theme and selected symbol shared across pages.
+- **Storybook** stories for core layout components.
+- **Testing**: Jest unit tests, Cypress e2e, and Playwright cross-browser tests.
 
-## API Integration
-- Configure backend API URLs in `src/api/config.ts`.
-- Ensure backend services have CORS enabled for frontend access.
+### Scripts
 
-## Docker
-A `Dockerfile` is included for containerized deployment.
+- `npm run dev` – start Vite dev server
+- `npm run build` – production build
+- `npm run preview` – preview production build
+- `npm run lint` – run eslint
+- `npm test` / `npm run test:watch` – Jest unit tests
+- `npm run storybook` / `npm run build-storybook` – Storybook
+- `npm run cypress` / `npm run cypress:run` – Cypress e2e (requires `npm run dev` in another terminal)
+- `npm run playwright:test` – Playwright tests (requires `npm run dev` in another terminal)
 
-## Tech Stack
-- React 18
-- TypeScript
-- Vite
-- Node.js (LTS)
+### Getting Started
 
----
-Replace this README with project-specific details as you develop the frontend.
+```bash
+cd v6/frontend
+npm install
+npm run dev
+```

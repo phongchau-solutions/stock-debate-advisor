@@ -1,13 +1,20 @@
 """
-Airflow DAG for financial data pipeline.
+Airflow DAG for comprehensive financial data pipeline v2.
+Orchestrates fetching of:
+- Company Information
+- Quarterly and Annual Financial Reports  
+- Stock Price Data (OHLCV, Dividends, Splits)
+- News Articles from multiple sources
 """
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.providers.postgres.operators.postgres import PostgresOperator
-from airflow.providers.http.operators.http import SimpleHttpOperator
+from airflow.utils.task_group import TaskGroup
 import sys
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -18,25 +25,29 @@ default_args = {
     'start_date': datetime(2024, 1, 1),
     'email_on_failure': False,
     'email_on_retry': False,
-    'retries': 3,
+    'retries': 2,
     'retry_delay': timedelta(minutes=5),
 }
 
 
-def fetch_vietcap_data(symbol: str, **context):
-    """Fetch data from VietCap API."""
-    from app.clients.vietcap_client import VietCapClient
+def fetch_yahoo_finance_data(symbol: str, **context):
+    """Fetch data from Yahoo Finance API."""
+    from app.clients.yahoo_finance_client import YahooFinanceClient
+    from app.services.financial_data_service import FinancialDataService
     from app.db.database import get_db
     from app.db.models import FinancialData
     import json
     
-    client = VietCapClient()
-    data = client.get_all_financial_data(symbol)
+    yahoo_client = YahooFinanceClient()
+    financial_service = FinancialDataService(yahoo_client)
+    
+    # Fetch and cache data
+    data = financial_service.fetch_and_cache(symbol)
     
     # Store in database
     with get_db() as db:
         # Store each type of financial data
-        for data_type in ['balance_sheet', 'income_statement', 'cash_flow', 'metrics']:
+        for data_type in ['info', 'prices', 'quarterly', 'annual', 'metrics', 'dividends', 'splits']:
             if data.get(data_type):
                 financial_record = FinancialData(
                     symbol=symbol,
@@ -47,8 +58,14 @@ def fetch_vietcap_data(symbol: str, **context):
         
         db.commit()
     
-    print(f"Fetched VietCap data for {symbol}")
+    print(f"Fetched Yahoo Finance data for {symbol}")
     return data
+
+
+def fetch_vietcap_data(symbol: str, **context):
+    """Fetch data from Yahoo Finance API (deprecated: use fetch_yahoo_finance_data)."""
+    # Delegate to Yahoo Finance
+    return fetch_yahoo_finance_data(symbol, **context)
 
 
 def crawl_news_data(symbol: str, **context):
@@ -125,10 +142,10 @@ with DAG(
     symbols = ['MBB', 'VNM', 'VCB', 'HPG', 'VHM']
 
     for symbol in symbols:
-        # Task 1: Fetch VietCap financial data
-        fetch_vietcap = PythonOperator(
-            task_id=f'fetch_vietcap_{symbol}',
-            python_callable=fetch_vietcap_data,
+        # Task 1: Fetch Yahoo Finance data
+        fetch_yahoo = PythonOperator(
+            task_id=f'fetch_yahoo_{symbol}',
+            python_callable=fetch_yahoo_finance_data,
             op_kwargs={'symbol': symbol},
         )
 
@@ -147,4 +164,4 @@ with DAG(
         )
 
         # Set task dependencies - all can run in parallel
-        [fetch_vietcap, crawl_news, fetch_prices]
+        [fetch_yahoo, crawl_news, fetch_prices]

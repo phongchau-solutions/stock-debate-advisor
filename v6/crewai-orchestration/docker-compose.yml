@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  crewai-debate:
+    build: .
+    container_name: stock-debate-crewai
+    ports:
+      - "8501:8501"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - CREWAI_MODEL=gemini-1.5-pro
+      - CREW_VERBOSE=True
+      - CREW_MEMORY=True
+    volumes:
+      - ./data:/app/data
+      - ./.env:/app/.env
+    networks:
+      - stock-debate
+
+networks:
+  stock-debate:
+    driver: bridge

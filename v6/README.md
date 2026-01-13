@@ -9,15 +9,15 @@ v6/
 ├── data-service/          # Data retrieval and storage
 ├── analysis-service/      # Analysis engines (Fundamental, Technical, Sentiment)
 ├── agentic-service/       # Multi-agent debate orchestration (Google ADK)
-├── shared/                # Shared utilities
-└── infrastructure/        # Docker, configs, deployment
+├── frontend/              # React web UI
+└── docker-compose.yml     # Container orchestration
 ```
 
 ## 🚀 Features
 
 ### Data Service
 - **Data Pipeline**: Airflow DAGs for scheduled data retrieval
-- **VietCap API Integration**: Fetch financial statements, ratios, and price data
+- **Yahoo Finance API Integration**: Fetch comprehensive financial data, price history, and metrics
 - **News Crawling**: Crawl Vietnamese financial news (VietStock, CafeF, VnEconomy)
 - **Database**: PostgreSQL for structured data, MongoDB for documents
 - **FastAPI Endpoints**: RESTful API for data access
@@ -36,14 +36,23 @@ v6/
 - **Multi-Agent Debate**: Structured debates with Fundamental, Technical, Sentiment analysts + Moderator + Judge
 - **Session Management**: ADK sessions for conversation state and memory
 - **Tools Layer**: Access to data and analysis services
-- **MCP-Ready**: Native MCP support through ADK
 - **Streamlit Demo**: Working interactive demo UI
+
+### Frontend
+- **React + TypeScript**: Modern web UI with Tailwind CSS
+- **Component Library**: Reusable Material Design 3 components
+- **Testing**: Jest, Playwright, Cypress
+- **State Management**: Jotai atoms
+- **API Integration**: Axios with interceptors
 
 ## 📦 Prerequisites
 
 - Docker & Docker Compose
 - Python 3.11+
+- Node.js 18+ (for frontend development)
 - Gemini API Key (or OpenAI API Key)
+
+---
 
 ## 🔧 Quick Start
 
@@ -67,6 +76,7 @@ docker-compose ps
 
 ### 3. Access Services
 
+- **Frontend UI**: http://localhost:5173 (React app)
 - **Agentic Service Demo**: http://localhost:8501 (Streamlit UI)
 - **Data Service API**: http://localhost:8001/docs
 - **Analysis Service API**: http://localhost:8002/docs
@@ -74,9 +84,9 @@ docker-compose ps
 
 ### 4. Run a Debate
 
-1. Open http://localhost:8501 in your browser
-2. Enter a stock symbol (e.g., MBB, VNM, VCB)
-3. Select number of debate rounds
+1. Open http://localhost:5173 in your browser (or http://localhost:8501 for Streamlit demo)
+2. Navigate to Analysis page
+3. Enter a stock symbol (e.g., MBB, VNM, VCB)
 4. Click "Start Debate"
 5. Watch the multi-agent debate unfold!
 
@@ -99,7 +109,21 @@ uvicorn app.main:app --reload --port 8002
 cd agentic-service/
 pip install -r requirements.txt
 streamlit run demo_app.py
+
+# Frontend
+cd frontend/
+npm install
+npm run dev
 ```
+
+## 📖 Documentation
+
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - System design and component details
+- [QUICKSTART.md](./QUICKSTART.md) - Detailed getting started guide
+- [data-service/README.md](./data-service/README.md) - Data service documentation
+- [analysis-service/README.md](./analysis-service/README.md) - Analysis service documentation
+- [agentic-service/README.md](./agentic-service/README.md) - Agentic service documentation
+- [frontend/README.md](./frontend/README.md) - Frontend documentation
 
 ## 📊 API Documentation
 
@@ -145,66 +169,17 @@ POST /api/v1/sentiment/{symbol}
 4. **Moderator**: Guides debate, challenges arguments, ensures balance
 5. **Judge**: Evaluates all arguments and provides final investment decision
 
-### Debate Flow
-
-```
-1. Data Retrieval (Data Service)
-   ↓
-2. Analysis (Analysis Service)
-   ↓
-3. Multi-Round Debate (Agentic Service)
-   - Round 1-N: Each analyst presents arguments
-   - Moderator challenges and clarifies
-   ↓
-4. Final Judgment
-   - Judge evaluates all perspectives
-   - Provides investment recommendation
-```
-
 ## 🔌 Service Communication
 
 ```
-┌─────────────────┐
-│  Agentic Service │ (Port 8501/8003)
-│  - Google ADK   │
-│  - Orchestrator  │
-└────────┬────────┘
-         │
-         ├──────────┐
-         │          │
-┌────────▼────────┐ │
-│ Analysis Service│ │ (Port 8002)
-│  - Fundamental  │ │
-│  - Technical    │ │
-│  - Sentiment    │ │
-└────────┬────────┘ │
-         │          │
-┌────────▼──────────▼┐
-│    Data Service    │ (Port 8001)
-│  - VietCap API     │
-│  - News Crawler    │
-│  - Database        │
-└────────┬───────────┘
-         │
-    ┌────┴────┐
-┌───▼───┐ ┌──▼──┐
-│ Postgres│ │Mongo│
-└─────────┘ └─────┘
+Frontend (React)
+    ↓
+Agentic Service (Google ADK) ↔ Analysis Service ↔ Data Service
+    ↑                              ↑                   ↑
+    └──────────────────────┬───────┘───────────────────┘
+                           ↓
+                    PostgreSQL + MongoDB
 ```
-
-## 🗄️ Database Schema
-
-### PostgreSQL Tables
-- `financial_data`: Financial statements and ratios
-- `price_data`: Historical price data
-- `news_articles`: Crawled news articles
-- `company_info`: Company metadata
-- `data_pipeline_logs`: Pipeline execution logs
-
-### MongoDB Collections
-- `analysis_results`: Cached analysis results
-- `debate_transcripts`: Debate history
-- `agent_memory`: Agent conversation history
 
 ## 📝 Environment Variables
 
@@ -225,11 +200,17 @@ ANALYSIS_SERVICE_URL=http://analysis-service:8002
 # LLM Configuration
 LLM_MODEL=gemini-1.5-pro
 LLM_TEMPERATURE=0.7
-LLM_MAX_TOKENS=2048
-
-# Debate Configuration
-DEBATE_ROUNDS=3
 ```
+
+## 📚 Technology Stack
+
+- **Orchestration**: Google Agent Development Kit (ADK)
+- **LLM**: Google Gemini (or OpenAI GPT-4)
+- **Backend**: FastAPI, Python 3.11
+- **Frontend**: React 18, TypeScript, Tailwind CSS
+- **Database**: PostgreSQL, MongoDB
+- **Pipeline**: Apache Airflow
+- **Deployment**: Docker, Docker Compose
 
 ## 🧪 Testing
 
@@ -240,47 +221,15 @@ curl http://localhost:8001/health
 # Test analysis service
 curl http://localhost:8002/health
 
-# Test end-to-end
-curl -X POST http://localhost:8002/api/v1/analyze/MBB
+# Test frontend
+npm run test          # Jest unit tests
+npm run cypress       # E2E tests
 ```
-
-## 📚 Technology Stack
-
-- **Orchestration**: Google Agent Development Kit (ADK)
-- **LLM**: Google Gemini (or OpenAI GPT-4)
-- **Backend**: FastAPI, Python 3.11
-- **Database**: PostgreSQL, MongoDB
-- **Pipeline**: Apache Airflow
-- **UI**: Streamlit
-- **Deployment**: Docker, Docker Compose
-- **Data Processing**: Pandas, NumPy
-- **Web Scraping**: BeautifulSoup, Requests
-
-## 🔮 Future Enhancements
-
-- [ ] MCP (Model Context Protocol) full integration
-- [ ] Real-time streaming debates
-- [ ] Multi-model ensemble (Gemini + GPT-4)
-- [ ] Enhanced technical analysis (TA-Lib)
-- [ ] Deep learning sentiment models
-- [ ] RESTful API for agentic service
-- [ ] WebSocket support for live updates
-- [ ] Authentication & authorization
-- [ ] Rate limiting & caching
-- [ ] Monitoring & observability (Prometheus, Grafana)
 
 ## 📄 License
 
 MIT License
 
-## 🤝 Contributing
-
-Contributions welcome! Please read contributing guidelines.
-
-## 📧 Contact
-
-For questions or support, please open an issue.
-
 ---
 
-**Built with ❤️ using Google Agent Development Kit (ADK) and modern microservices architecture**
+**Built with Google Agent Development Kit (ADK) and modern microservices architecture**

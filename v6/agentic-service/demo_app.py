@@ -231,7 +231,7 @@ def main():
         ├── data-service/          # Data retrieval and storage
         │   ├── app/
         │   │   ├── api/           # FastAPI endpoints
-        │   │   ├── clients/       # VietCap API client
+        │   │   ├── clients/       # Yahoo Finance API client
         │   │   ├── crawlers/      # News crawlers
         │   │   └── db/            # Database models
         │   └── airflow/           # Data pipeline DAGs

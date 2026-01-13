@@ -42,16 +42,16 @@ v6 is a microservices-based agentic system for stock analysis using multi-agent 
 ┌──────────▼───────────┐  ┌────────▼──────────────┐
 │  Analysis Service    │  │    Data Service       │
 │  ┌────────────────┐  │  │  ┌──────────────────┐ │
-│  │ Fundamental    │  │  │  │  VietCap Client  │ │
-│  │ Analyzer       │  │  │  │                  │ │
+│  │ Fundamental    │  │  │  │ Yahoo Finance    │ │
+│  │ Analyzer       │  │  │  │ Client           │ │
 │  ├────────────────┤  │  │  ├──────────────────┤ │
-│  │ Technical      │  │  │  │  News Crawler    │ │
+│  │ Technical      │  │  │  │ Financial Data   │ │
+│  │ Analyzer       │  │  │  │ Service          │ │
+│  ├────────────────┤  │  │  ├──────────────────┤ │
+│  │ Sentiment      │  │  │  │  News Crawler    │ │
 │  │ Analyzer       │  │  │  │  - VietStock     │ │
 │  ├────────────────┤  │  │  │  - CafeF         │ │
-│  │ Sentiment      │  │  │  │  - VnEconomy     │ │
-│  │ Analyzer       │  │  │  ├──────────────────┤ │
-│  ├────────────────┤  │  │  │  yFinance        │ │
-│  │ ETL Pipeline   │  │  │  │  Integration     │ │
+│  │ ETL Pipeline   │  │  │  │  - VnEconomy     │ │
 │  └────────────────┘  │  │  └──────────────────┘ │
 │  Port: 8002          │  │  Port: 8001           │
 └──────────┬───────────┘  └──────────┬────────────┘
@@ -87,15 +87,16 @@ v6 is a microservices-based agentic system for stock analysis using multi-agent 
 **Responsibility**: Data acquisition, storage, and retrieval
 
 **Key Components**:
-- **VietCap API Client**: Fetches financial statements, ratios, and company data
+- **Yahoo Finance Client**: Fetches comprehensive financial data, price history, metrics, dividends, and stock splits
+- **Financial Data Service**: Caching layer with batch processing and data validation
 - **News Crawler**: Scrapes financial news from Vietnamese sources
-- **yFinance Integration**: Historical price data
 - **Database Models**: SQLAlchemy models for structured data
 - **FastAPI Endpoints**: RESTful API for data access
 
 **Technologies**:
 - FastAPI for API framework
 - SQLAlchemy for ORM
+- yfinance for Yahoo Finance data
 - BeautifulSoup for web scraping
 - Requests for HTTP calls
 - Apache Airflow for pipeline orchestration
@@ -217,7 +218,7 @@ news_articles
 ```
 Airflow Scheduler
     └──> Data Pipeline DAG
-         ├──> Fetch VietCap Data
+         ├──> Fetch Yahoo Finance Data
          │    └──> Store in PostgreSQL
          ├──> Crawl News Articles
          │    └──> Store in PostgreSQL
@@ -279,7 +280,7 @@ Agentic Service Request
 ### Rate Limiting
 - Per-service rate limits
 - LLM API call throttling
-- External API (VietCap) rate management
+- Yahoo Finance API rate management (automatic backoff)
 
 ## Security
 
