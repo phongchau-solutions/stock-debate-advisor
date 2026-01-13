@@ -6,10 +6,10 @@ A comprehensive microservices-based system for orchestrating multi-agent stock d
 
 ```
 v6/
-├── data-service/          # Data retrieval and storage
-├── analysis-service/      # Analysis engines (Fundamental, Technical, Sentiment)
-├── agentic-service/       # Multi-agent debate orchestration (Google ADK)
-├── frontend/              # React web UI
+├── ai-service/            # Multi-agent debate orchestration (CrewAI)
+├── data-service/          # Data retrieval and storage (Yahoo Finance, News)
+├── frontend/              # React web UI (Material Design 3)
+├── script/                # Data pipeline and utility scripts
 └── docker-compose.yml     # Container orchestration
 ```
 
@@ -22,21 +22,14 @@ v6/
 - **Database**: PostgreSQL for structured data, MongoDB for documents
 - **FastAPI Endpoints**: RESTful API for data access
 
-### Analysis Service
-- **Fundamental Analysis**: Financial statement analysis, ratios, valuation
-- **Technical Analysis**: Price trends, indicators (RSI, MACD, MA), patterns
-- **Sentiment Analysis**: News sentiment, keyword extraction, themes
-- **ETL Pipeline**: Process and analyze data from data-service
-- **FastAPI Endpoints**: Analysis API with caching
-
-### Agentic Service
-- **Google Agent Development Kit (ADK)**: Code-first multi-agent orchestration framework
-- **LlmAgent Pattern**: Each analyst as specialized LlmAgent with role-specific instructions
-- **Coordinator Agent**: Parent agent managing sub-agents in hierarchical structure
-- **Multi-Agent Debate**: Structured debates with Fundamental, Technical, Sentiment analysts + Moderator + Judge
-- **Session Management**: ADK sessions for conversation state and memory
+### AI Service (CrewAI)
+- **CrewAI Framework**: Agent-based orchestration for multi-agent debates
+- **Agent Roles**: Fundamental, Technical, Sentiment analysts + Moderator + Judge
+- **Multi-Agent Debate**: Structured debates with reasoning and consensus
+- **Session Management**: Conversation state and memory management
 - **Tools Layer**: Access to data and analysis services
-- **Streamlit Demo**: Working interactive demo UI
+- **Streamlit Demo**: Interactive demo UI for agent interaction
+- **API Endpoints**: REST API for debate orchestration
 
 ### Frontend
 - **React + TypeScript**: Modern web UI with Tailwind CSS
@@ -77,10 +70,8 @@ docker-compose ps
 ### 3. Access Services
 
 - **Frontend UI**: http://localhost:5173 (React app)
-- **Agentic Service Demo**: http://localhost:8501 (Streamlit UI)
+- **AI Service Demo**: http://localhost:8501 (Streamlit UI)
 - **Data Service API**: http://localhost:8001/docs
-- **Analysis Service API**: http://localhost:8002/docs
-- **Airflow UI**: http://localhost:8080 (admin/admin)
 
 ### 4. Run a Debate
 
@@ -100,13 +91,8 @@ cd data-service/
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8001
 
-# Analysis Service
-cd analysis-service/
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8002
-
-# Agentic Service
-cd agentic-service/
+# AI Service (CrewAI)
+cd ai-service/
 pip install -r requirements.txt
 streamlit run demo_app.py
 
@@ -121,8 +107,7 @@ npm run dev
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - System design and component details
 - [QUICKSTART.md](./QUICKSTART.md) - Detailed getting started guide
 - [data-service/README.md](./data-service/README.md) - Data service documentation
-- [analysis-service/README.md](./analysis-service/README.md) - Analysis service documentation
-- [agentic-service/README.md](./agentic-service/README.md) - Agentic service documentation
+- [ai-service/README.md](./ai-service/README.md) - AI service (CrewAI) documentation
 - [frontend/README.md](./frontend/README.md) - Frontend documentation
 
 ## 📊 API Documentation
@@ -143,20 +128,18 @@ GET /api/v1/news/{symbol}
 POST /api/v1/crawl/{symbol}
 ```
 
-### Analysis Service API
+### AI Service API
 
 ```bash
-# Comprehensive analysis
-POST /api/v1/analyze/{symbol}
+# Run multi-agent debate
+POST /api/v1/debate
+{"symbol": "MBB", "rounds": 3}
 
-# Fundamental analysis only
-POST /api/v1/fundamental/{symbol}
+# Get debate result
+GET /api/v1/debate/{session_id}
 
-# Technical analysis only
-POST /api/v1/technical/{symbol}
-
-# Sentiment analysis only
-POST /api/v1/sentiment/{symbol}
+# List sessions
+GET /api/v1/sessions
 ```
 
 ## 🤖 Agent Architecture
@@ -174,11 +157,11 @@ POST /api/v1/sentiment/{symbol}
 ```
 Frontend (React)
     ↓
-Agentic Service (Google ADK) ↔ Analysis Service ↔ Data Service
-    ↑                              ↑                   ↑
-    └──────────────────────┬───────┘───────────────────┘
-                           ↓
-                    PostgreSQL + MongoDB
+AI Service (CrewAI) ↔ Data Service
+    ↑                    ↑
+    └────────────────────┘
+          ↓
+    PostgreSQL + MongoDB
 ```
 
 ## 📝 Environment Variables
@@ -195,21 +178,20 @@ MONGODB_DB=stock_debate
 
 # Service URLs
 DATA_SERVICE_URL=http://data-service:8001
-ANALYSIS_SERVICE_URL=http://analysis-service:8002
 
 # LLM Configuration
-LLM_MODEL=gemini-1.5-pro
+LLM_MODEL=gemini-1.5-pro  # or gpt-4
 LLM_TEMPERATURE=0.7
 ```
 
 ## 📚 Technology Stack
 
-- **Orchestration**: Google Agent Development Kit (ADK)
+- **Orchestration**: CrewAI
 - **LLM**: Google Gemini (or OpenAI GPT-4)
 - **Backend**: FastAPI, Python 3.11
 - **Frontend**: React 18, TypeScript, Tailwind CSS
 - **Database**: PostgreSQL, MongoDB
-- **Pipeline**: Apache Airflow
+- **Data Pipeline**: Yahoo Finance API, News crawlers
 - **Deployment**: Docker, Docker Compose
 
 ## 🧪 Testing
@@ -218,12 +200,12 @@ LLM_TEMPERATURE=0.7
 # Test data service
 curl http://localhost:8001/health
 
-# Test analysis service
-curl http://localhost:8002/health
+# Test AI service
+curl http://localhost:8000/health
 
 # Test frontend
 npm run test          # Jest unit tests
-npm run cypress       # E2E tests
+npm run playwright:test   # Playwright E2E tests
 ```
 
 ## 📄 License
@@ -232,4 +214,4 @@ MIT License
 
 ---
 
-**Built with Google Agent Development Kit (ADK) and modern microservices architecture**
+**Built with CrewAI, FastAPI, and modern microservices architecture**

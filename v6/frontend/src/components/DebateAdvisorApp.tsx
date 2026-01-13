@@ -1,7 +1,7 @@
-"""
-React Components for Stock Debate Advisor
-Components using Atom state management
-"""
+/*
+ * React Components for Stock Debate Advisor
+ * Components using Atom state management
+ */
 
 import React, { useEffect } from 'react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';

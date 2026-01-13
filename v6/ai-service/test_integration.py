@@ -67,7 +67,7 @@ async def test_start_debate_session(symbol: str):
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 "http://localhost:8001/api/debate/start",
-                json={"symbol": symbol, "rounds": 1}
+                json={"symbol": symbol, "rounds": 2}  # Minimum is 2 rounds
             )
             data = response.json()
             session_id = data.get("session_id")
@@ -180,7 +180,7 @@ def test_orchestrator_session_pass():
         from orchestrator_v2 import DebateOrchestrator
         
         orchestrator = DebateOrchestrator()
-        result = orchestrator.start_debate_session("TPB", rounds=1)
+        result = orchestrator.start_debate_session("TPB", rounds=2)
         
         session_id = result.get("session_id")
         print(f"✅ Session created: {session_id}")
