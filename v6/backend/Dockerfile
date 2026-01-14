@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install --production
 
 # Copy application code
 COPY src ./src
@@ -18,3 +18,6 @@ USER nodejs
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD wget --quiet --tries=1 --spider http://localhost:8000/health || exit 1
 
+EXPOSE 8000
+
+CMD ["node", "src/index.js"]
