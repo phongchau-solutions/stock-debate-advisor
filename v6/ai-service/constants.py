@@ -173,8 +173,8 @@ class PromptConstants:
 
 class LLMConstants:
     """LLM configuration constants."""
-    DEFAULT_MODEL: Final[str] = "gemini-1.5-flash"
-    CREWAI_MODEL: Final[str] = "gemini-1.5-pro"
+    DEFAULT_MODEL: Final[str] = "gemini-2.5-flash"
+    CREWAI_MODEL: Final[str] = "gemini-2.5-pro"
     DEFAULT_TEMPERATURE: Final[float] = 0.7
     DEFAULT_MAX_TOKENS: Final[int] = 1024
     DEBATE_MAX_TOKENS: Final[int] = 500  # Shorter outputs for debate
