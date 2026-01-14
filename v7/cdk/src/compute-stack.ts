@@ -56,13 +56,13 @@ export class ComputeStack extends cdk.Stack {
     // Debate Lambda function
     this.debateLambda = new lambda.Function(this, 'DebateLambda', {
       runtime: lambda.Runtime.PYTHON_3_12,
-      handler: 'index.lambda_handler',
+      handler: 'src.handlers.index.lambda_handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../ai-service'), {
         bundling: {
           image: lambda.Runtime.PYTHON_3_12.bundlingImage,
           command: [
             'bash', '-c',
-            'pip install -r requirements-lambda.txt -t /asset-output && cp index.py engine_bedrock.py constants.py /asset-output'
+            'pip install -r deps/requirements-prod.txt -t /asset-output && cp -r src /asset-output/'
           ]
         }
       }),
@@ -85,13 +85,13 @@ export class ComputeStack extends cdk.Stack {
     // Health check Lambda
     const healthLambda = new lambda.Function(this, 'HealthLambda', {
       runtime: lambda.Runtime.PYTHON_3_12,
-      handler: 'index.health_handler',
+      handler: 'src.handlers.index.health_handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../ai-service'), {
         bundling: {
           image: lambda.Runtime.PYTHON_3_12.bundlingImage,
           command: [
             'bash', '-c',
-            'pip install -r requirements-health.txt -t /asset-output && cp index.py /asset-output'
+            'pip install -r deps/requirements-health.txt -t /asset-output && cp -r src /asset-output/'
           ]
         }
       }),
