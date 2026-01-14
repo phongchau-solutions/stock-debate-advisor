@@ -1,0 +1,8 @@
+{
+  "app": "npx ts-node src/index.ts",
+  "context": {
+    "environment": "dev",
+    "apiVersion": "v1",
+    "stackPrefix": "StockDebate"
+  }
+}
