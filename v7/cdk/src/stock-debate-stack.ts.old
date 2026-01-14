@@ -25,10 +25,7 @@ export class StockDebateStack extends cdk.Stack {
     const userPool = new cognito.UserPool(this, `${stackPrefix}UserPool`, {
       userPoolName: `${stackPrefix}-${environment}`,
       selfSignUpEnabled: true,
-      // autoVerifiedAttributes removed - use signInAliases instead
-      signInAliases: {
-        email: true
-      },
+      autoVerifiedAttributes: [cognito.UserPoolAttribute.EMAIL],
       standardAttributes: {
         email: {
           required: true,
