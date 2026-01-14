@@ -180,7 +180,7 @@ MONGODB_DB=stock_debate
 DATA_SERVICE_URL=http://data-service:8001
 
 # LLM Configuration
-LLM_MODEL=gemini-1.5-pro  # or gpt-4
+LLM_MODEL=gemini-2.5-pro  # or gpt-4
 LLM_TEMPERATURE=0.7
 ```
 

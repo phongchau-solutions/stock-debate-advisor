@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: stock_debate_data
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -40,6 +40,35 @@ services:
       timeout: 5s
       retries: 5
 
+  # Backend Service (API Bridge)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: stock-debate-backend
+    environment:
+      - NODE_ENV=production
+      - PORT=8000
+      - HOST=0.0.0.0
+      - DATA_SERVICE_URL=http://data-service:8001
+      - AI_SERVICE_URL=http://ai-service:8003
+      - LOG_LEVEL=info
+      - ENABLE_CORS=true
+      - CORS_ORIGIN=*
+      - API_TIMEOUT=30000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - data-service
+      - ai-service
+    networks:
+      - stock-debate-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Data Service
   data-service:
     build:
@@ -63,45 +92,25 @@ services:
       - ./data-service:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
 
-  # Analysis Service
-  analysis-service:
+  # AI Service (formerly agentic-service)
+  ai-service:
     build:
-      context: ./analysis-service
+      context: ./ai-service
       dockerfile: Dockerfile
-    container_name: stock-debate-analysis-service
+    container_name: stock-debate-ai-service
     environment:
       - DATA_SERVICE_URL=http://data-service:8001
-    ports:
-      - "8002:8002"
-    depends_on:
-      - data-service
-    networks:
-      - stock-debate-network
-    volumes:
-      - ./analysis-service:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload
-
-  # Agentic Service
-  agentic-service:
-    build:
-      context: ./agentic-service
-      dockerfile: Dockerfile
-    container_name: stock-debate-agentic-service
-    environment:
-      - DATA_SERVICE_URL=http://data-service:8001
-      - ANALYSIS_SERVICE_URL=http://analysis-service:8002
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     ports:
       - "8003:8003"
       - "8501:8501"  # Streamlit demo
     depends_on:
       - data-service
-      - analysis-service
     networks:
       - stock-debate-network
     volumes:
-      - ./agentic-service:/app
-    command: streamlit run demo_app.py --server.port=8501 --server.address=0.0.0.0
+      - ./ai-service:/app
+    command: streamlit run app.py --server.port=8501 --server.address=0.0.0.0
 
   # Airflow (Optional - for data pipeline scheduling)
   airflow:
