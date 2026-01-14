@@ -85,7 +85,7 @@ export class DebateAPI {
   private baseUrl: string;
   private timeout: number;
 
-  constructor(baseUrl: string = 'http://localhost:8000', timeout: number = 30000) {
+  constructor(baseUrl: string = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api/v1', timeout: number = 30000) {
     this.baseUrl = baseUrl.replace(/\/$/, '');
     this.timeout = timeout;
   }

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 export const Footer: React.FC = () => {
   return (
     <footer className="border-t border-border/50 bg-gradient-to-b from-muted/50 to-muted/80 backdrop-blur-sm dark:from-slate-950/50 dark:to-slate-950/80">
-      <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-12 md:px-8">
+      <div className="mx-auto flex max-w-[100rem] flex-col gap-6 px-3 py-6 md:px-3">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Brand Section */}
@@ -19,13 +19,13 @@ export const Footer: React.FC = () => {
               AI-powered investment analysis platform using multi-agent debate technology for smarter financial decisions.
             </p>
             <div className="flex gap-3 mt-4">
-              <a href="#" className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-border/30 hover:border-primary/50 hover:text-primary transition-colors text-muted-foreground">
+              <a href="#" className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-border/30 text-muted-foreground hover:bg-muted hover:text-blue-950 dark:hover:text-blue-400 active:bg-muted/80 active:text-blue-900 dark:active:text-blue-300 disabled:text-gray-400 dark:disabled:text-gray-600 transition-colors" style={{ backgroundImage: 'none' }}>
                 <span className="fa-brands fa-twitter text-sm" />
               </a>
-              <a href="#" className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-border/30 hover:border-primary/50 hover:text-primary transition-colors text-muted-foreground">
+              <a href="#" className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-border/30 text-muted-foreground hover:bg-muted hover:text-blue-950 dark:hover:text-blue-400 active:bg-muted/80 active:text-blue-900 dark:active:text-blue-300 disabled:text-gray-400 dark:disabled:text-gray-600 transition-colors" style={{ backgroundImage: 'none' }}>
                 <span className="fa-brands fa-linkedin text-sm" />
               </a>
-              <a href="#" className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-border/30 hover:border-primary/50 hover:text-primary transition-colors text-muted-foreground">
+              <a href="#" className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-border/30 text-muted-foreground hover:bg-muted hover:text-blue-950 dark:hover:text-blue-400 active:bg-muted/80 active:text-blue-900 dark:active:text-blue-300 disabled:text-gray-400 dark:disabled:text-gray-600 transition-colors" style={{ backgroundImage: 'none' }}>
                 <span className="fa-brands fa-github text-sm" />
               </a>
             </div>

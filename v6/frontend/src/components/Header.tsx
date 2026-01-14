@@ -8,7 +8,7 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/50 bg-white/95 backdrop-blur-xl dark:bg-slate-950/95">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8">
+      <div className="mx-auto flex max-w-[100rem] items-center justify-between px-3 py-2 md:px-3">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3 group">
           <div className="relative">
@@ -29,7 +29,8 @@ export const Header: React.FC = () => {
           <button
             type="button"
             onClick={toggleTheme}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-border/30 bg-muted/40 p-2 md:px-3 md:py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-border/30 bg-muted/40 p-2 md:px-3 md:py-2 text-sm font-medium text-foreground hover:bg-muted hover:text-blue-950 dark:hover:text-blue-400 active:bg-muted/80 active:text-blue-900 dark:active:text-blue-300 disabled:text-gray-400 dark:disabled:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+            style={{ backgroundImage: 'none' }}
             aria-label="Toggle theme"
             title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
           >
@@ -43,7 +44,8 @@ export const Header: React.FC = () => {
           {/* Notifications */}
           <button
             type="button"
-            className="relative inline-flex items-center justify-center p-2 rounded-lg border border-border/30 bg-muted/40 hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+            className="relative inline-flex items-center justify-center p-2 rounded-lg border border-border/30 bg-muted/40 text-foreground hover:bg-muted hover:text-blue-950 dark:hover:text-blue-400 active:bg-muted/80 active:text-blue-900 dark:active:text-blue-300 disabled:text-gray-400 dark:disabled:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+            style={{ backgroundImage: 'none' }}
             aria-label="Notifications"
             title="Notifications"
           >
@@ -56,7 +58,8 @@ export const Header: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowAccountMenu(!showAccountMenu)}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-border/30 bg-muted/40 p-2 hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-border/30 bg-muted/40 p-2 text-foreground hover:bg-muted hover:text-blue-950 dark:hover:text-blue-400 active:bg-muted/80 active:text-blue-900 dark:active:text-blue-300 disabled:text-gray-400 dark:disabled:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+              style={{ backgroundImage: 'none' }}
               aria-label="Account menu"
               title="Account settings"
             >

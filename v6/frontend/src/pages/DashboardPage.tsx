@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAtom, useSetAtom } from 'jotai';
 import { StatsCard } from '../components/StatsCard';
 import { BarChart, ConfidenceChart, LineChart } from '../components/Charts';
+import { TableauEmbed } from '../components/TableauEmbed';
 import {
   debateHistoryAtom,
   dashboardStatsAtom,
@@ -40,28 +41,28 @@ export const DashboardPage: React.FC = () => {
       label: 'Macro Analysis',
       icon: 'fa-globe',
       description: 'Global economic indicators, GDP trends, interest rates, and macroeconomic forecasts',
-      tableauUrl: 'https://public.tableau.com/shared/SYCH3D8YR?:display_count=n&:origin=viz_share_link',
+      tableauUrl: 'https://public.tableau.com/views/MacroEconomy_16614002627530/Dashboard1?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link',
     },
     {
       id: 'market',
       label: 'Market Overview',
       icon: 'fa-arrow-trend-up',
       description: 'Real-time market indices, sector performance, and volatility analysis',
-      tableauUrl: 'https://public.tableau.com/shared/DNFQ5QHKZ?:display_count=n&:origin=viz_share_link',
+      tableauUrl: 'https://public.tableau.com/views/MacroEconomy_16614002627530/GDPForcast?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link',
     },
     {
       id: 'stocks',
       label: 'Stock Analysis',
       icon: 'fa-chart-line',
       description: 'Top performers, sector breakdown, and individual stock metrics',
-      tableauUrl: 'https://public.tableau.com/shared/8R4RNZ9YC?:display_count=n&:origin=viz_share_link',
+      tableauUrl: 'https://public.tableau.com/views/MacroEconomy_16614002627530/MoneyStockvsInflation?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link',
     },
     {
       id: 'commodities',
       label: 'Commodities',
       icon: 'fa-bars',
       description: 'Oil, gold, natural gas, and agricultural commodity trends',
-      tableauUrl: 'https://public.tableau.com/shared/XQHY3KPPY?:display_count=n&:origin=viz_share_link',
+      tableauUrl: 'https://public.tableau.com/views/MacroEconomy_16614002627530/Inflationovertheperiodoftime?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link',
     },
   ];
 
@@ -166,9 +167,9 @@ export const DashboardPage: React.FC = () => {
       {/* Recent Activity - From atoms */}
       <div className="rounded-lg border border-border/50 bg-white dark:bg-slate-900 p-4 shadow-sm">
         <h2 className="text-lg font-bold text-foreground mb-4">Recent Debate Activity</h2>
-        <div className="space-y-2">
+        <div className="max-h-80 overflow-y-auto space-y-2">
           {debateHistory.length > 0 ? (
-            debateHistory.map((debate, idx) => {
+            debateHistory.slice(0, 3).map((debate, idx) => {
               const verdictColors = {
                 BUY: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700/50',
                 HOLD: 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700/50',
@@ -204,6 +205,30 @@ export const DashboardPage: React.FC = () => {
             </div>
           )}
         </div>
+        {debateHistory.length > 3 && (
+          <button
+            onClick={() => {
+              // Show all debates - could navigate or open modal
+              const allDebatesModal = document.createElement('div');
+              allDebatesModal.innerHTML = `
+                <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                  <div class="bg-white dark:bg-slate-900 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6">
+                    <div class="flex items-center justify-between mb-4">
+                      <h3 class="text-xl font-bold text-foreground">All Debate History</h3>
+                      <button class="text-muted-foreground hover:text-foreground text-2xl leading-none" onclick="this.closest('div').parentElement.parentElement.remove()">×</button>
+                    </div>
+                    <p class="text-sm text-muted-foreground mb-4">Total: ${debateHistory.length} debates</p>
+                  </div>
+                </div>
+              `;
+              document.body.appendChild(allDebatesModal);
+            }}
+            className="w-full mt-3 px-4 py-2 rounded-md border border-border/50 text-foreground hover:bg-muted/50 font-medium text-sm transition-colors inline-flex items-center justify-center gap-2"
+          >
+            <span className="fa-solid fa-expand" />
+            View All {debateHistory.length} Debates
+          </button>
+        )}
       </div>
 
       {/* Section Header for Dashboards */}
@@ -275,22 +300,20 @@ export const DashboardPage: React.FC = () => {
               </a>
             </div>
 
-            {/* Tableau Embed Container */}
-            <div className="rounded-md overflow-hidden border border-border/50 bg-muted/30">
-              <div style={{ height: '600px', width: '100%' }}>
-                <iframe
-                  src={activeTabData.tableauUrl}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    border: 'none',
-                    borderRadius: '0.5rem',
-                  }}
-                  allowFullScreen={true}
-                  title={activeTabData.label}
-                />
-              </div>
-            </div>
+            {/* Tableau Embed */}
+            <TableauEmbed
+              name={`MacroEconomy_16614002627530/${
+                activeTab === 'macro'
+                  ? 'Dashboard1'
+                  : activeTab === 'market'
+                  ? 'GDPForcast'
+                  : activeTab === 'stocks'
+                  ? 'MoneyStockvsInflation'
+                  : 'Inflationovertheperiodoftime'
+              }`}
+              description={activeTabData.description}
+              height={600}
+            />
 
             {/* Analytics Charts Section */}
             <div className="mt-6 space-y-4">

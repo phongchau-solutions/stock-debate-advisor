@@ -17,7 +17,7 @@ export const AnalysisPage: React.FC = () => {
     try {
       await runDebate({ symbol });
     } catch (err) {
-      console.error('Debate error:', err);
+      // Error handled by debate hook
     }
   };
 

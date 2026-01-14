@@ -165,7 +165,6 @@ export const fetchDebateAsync = async (
     );
     
     const sessionId = startResponse.session_id;
-    console.log(`[Debate] Session started: ${sessionId} for ${params.symbol}`);
     
     // Step 2: Poll for completion (with timeout)
     let debateResult: any = null;
@@ -234,7 +233,6 @@ export const fetchDebateAsync = async (
     };
     
   } catch (error) {
-    console.error('[Debate API] Error:', error);
     throw new Error('Failed to run debate. Please try again.');
   }
 };
@@ -267,7 +265,6 @@ export const fetchFinancialDataAsync = async (
       metrics: {}
     };
   } catch (error) {
-    console.error('Financial data API error:', error);
     throw new Error(`Failed to fetch financial data for ${symbol}`);
   }
 };
@@ -294,7 +291,6 @@ export const fetchCompanyInfoAsync = async (
       ceo: 'Unknown'
     };
   } catch (error) {
-    console.error('Company info API error:', error);
     throw new Error(`Failed to fetch company info for ${symbol}`);
   }
 };
@@ -311,7 +307,6 @@ export const fetchNewsAsync = async (
     // Return empty array - will integrate when backend has news service
     return [];
   } catch (error) {
-    console.error('News API error:', error);
     throw new Error(`Failed to fetch news for ${symbol}`);
   }
 };
@@ -332,7 +327,6 @@ export const fetchMarketAnalysisAsync = async (): Promise<MarketAnalysis> => {
       macroeconomic_indicators: {}
     };
   } catch (error) {
-    console.error('Market analysis API error:', error);
     throw new Error('Failed to fetch market analysis');
   }
 };
@@ -356,7 +350,6 @@ export const fetchComprehensiveAnalysisAsync = async (
 
     return { financial, company, news };
   } catch (error) {
-    console.error('Comprehensive analysis API error:', error);
     throw new Error('Failed to fetch comprehensive analysis');
   }
 };

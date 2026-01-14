@@ -17,7 +17,7 @@ class ApiClient {
   private client: AxiosInstance;
   private baseURL: string;
 
-  constructor(baseURL: string = 'http://localhost:8000/api/v1') {
+  constructor(baseURL: string = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api/v1') {
     this.baseURL = baseURL;
     
     const config: ApiConfig = {
@@ -39,11 +39,9 @@ class ApiClient {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
-        console.debug(`[API] ${config.method?.toUpperCase()} ${config.url}`);
         return config;
       },
       (error: AxiosError) => {
-        console.error('[API] Request error:', error.message);
         return Promise.reject(error);
       }
     );
@@ -51,7 +49,6 @@ class ApiClient {
     // Response interceptor
     this.client.interceptors.response.use(
       (response: AxiosResponse) => {
-        console.debug(`[API] Response ${response.status} from ${response.config.url}`);
         return response;
       },
       (error: AxiosError<ApiErrorResponse>) => {
@@ -62,12 +59,6 @@ class ApiClient {
           localStorage.removeItem('auth_token');
           window.location.href = '/login';
         }
-        
-        console.error('[API] Response error:', {
-          status: error.response?.status,
-          message: errorData?.message || error.message,
-          url: error.config?.url,
-        });
         
         return Promise.reject(error);
       }
@@ -117,7 +108,7 @@ class ApiClient {
 
 // Export singleton instance
 export const apiClient = new ApiClient(
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1'
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api/v1'
 );
 
 export default apiClient;

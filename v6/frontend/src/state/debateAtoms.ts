@@ -5,6 +5,8 @@
 
 import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { debateAdvisorClient, DebateSession, SessionInfo, KnowledgeData } from '../api/DebateAdvisorClient';
+import { apiClient } from '../api/client';
+import { generateMockDebateHistory, calculateMockStats, MOCK_SYMBOLS } from '../api/mockData';
 
 // ============================================
 // Core Atoms
@@ -85,8 +87,10 @@ export const loadSymbolsAtom = atom(
       set(availableSymbolsAtom, symbols);
       return symbols;
     } catch (error) {
-      set(errorMessageAtom, `Failed to load symbols: ${error}`);
-      throw error;
+      // Use mock symbols as fallback
+      set(availableSymbolsAtom, MOCK_SYMBOLS);
+      set(errorMessageAtom, 'Using demo symbols (backend unavailable)');
+      return MOCK_SYMBOLS;
     }
   }
 );
@@ -366,7 +370,7 @@ export const loadDebateHistoryAtom = atom(
   async (get, set) => {
     try {
       // Fetch from backend API
-      const response = await apiClient.get<any>('/api/debate/history');
+      const response = await apiClient.get<any>('/debate/history');
       const history: DebateHistoryItem[] = response.debates || [];
       set(debateHistoryAtom, history);
       
@@ -389,8 +393,15 @@ export const loadDebateHistoryAtom = atom(
       
       return history;
     } catch (error) {
-      set(errorMessageAtom, `Failed to load debate history: ${error}`);
-      return [];
+      // Use mock data as fallback when backend is unavailable
+      const mockHistory = generateMockDebateHistory();
+      set(debateHistoryAtom, mockHistory);
+      
+      const stats = calculateMockStats(mockHistory);
+      set(dashboardStatsAtom, stats);
+      set(errorMessageAtom, 'Using demo data (backend unavailable)');
+      
+      return mockHistory;
     }
   }
 );
@@ -422,7 +433,7 @@ export const loadFinancialMetricsAtom = atom(
   null,
   async (get, set, symbol: string) => {
     try {
-      const response = await apiClient.get<any>(`/api/financial/${symbol}`);
+      const response = await apiClient.get<any>(`/financials/${symbol}`);
       const metrics: FinancialMetrics = {
         symbol: response.symbol,
         peRatio: response.pe_ratio || 0,
@@ -440,8 +451,24 @@ export const loadFinancialMetricsAtom = atom(
       set(selectedFinancialMetricsAtom, metrics);
       return metrics;
     } catch (error) {
-      set(errorMessageAtom, `Failed to load financial metrics for ${symbol}: ${error}`);
-      return null;
+      // Provide mock data as fallback
+      const mockMetrics: FinancialMetrics = {
+        symbol: symbol,
+        peRatio: 12.5 + Math.random() * 5,
+        debtToEquity: 0.5 + Math.random() * 0.3,
+        profitMargin: 8 + Math.random() * 12,
+        roa: 5 + Math.random() * 10,
+        roe: 10 + Math.random() * 15,
+        currentRatio: 1.2 + Math.random() * 0.8,
+        quickRatio: 0.9 + Math.random() * 0.6,
+        revenueGrowth: 5 + Math.random() * 15,
+        epsGrowth: 3 + Math.random() * 12,
+        dividendYield: 2 + Math.random() * 4,
+        bookValue: 15 + Math.random() * 25,
+      };
+      set(selectedFinancialMetricsAtom, mockMetrics);
+      set(errorMessageAtom, `Using demo financial data for ${symbol} (backend unavailable)`);
+      return mockMetrics;
     }
   }
 );
