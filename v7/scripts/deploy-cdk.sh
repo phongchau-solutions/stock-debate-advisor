@@ -58,15 +58,15 @@ log_success "AWS Account: $AWS_ACCOUNT, Region: $AWS_REGION"
 
 # Step 1: Build Frontend
 log_step "Building frontend"
-cd v7/frontend
+cd "$(dirname "$0")/../frontend"
 npm install > /dev/null 2>&1
 npm run build > /dev/null 2>&1
 log_success "Frontend built to dist/"
-cd ../..
+cd "$(dirname "$0")/.."
 
 # Step 2: Setup CDK
 log_step "Setting up CDK"
-cd v7/cdk
+cd "$(dirname "$0")/../cdk"
 npm install > /dev/null 2>&1
 
 # Bootstrap if needed

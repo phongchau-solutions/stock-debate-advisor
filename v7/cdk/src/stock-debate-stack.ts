@@ -151,8 +151,8 @@ export class StockDebateStack extends cdk.Stack {
     const debateOrchestratorLambda = new lambda.Function(this, `${stackPrefix}DebateOrchestrator`, {
       functionName: `${stackPrefix}-debate-orchestrator-${environment}`,
       runtime: lambda.Runtime.PYTHON_3_12,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../ai-service/lambda')),
+      handler: 'src.handlers.index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../ai-service')),
       environment: {
         DEBATES_TABLE: debatesTable.tableName,
         STOCK_CACHE_TABLE: stockCacheTable.tableName,
