@@ -7,16 +7,19 @@ uvicorn[standard]>=0.24.0
 pydantic>=2.5.0
 pydantic-settings>=2.1.0
 
-# Database
-sqlalchemy>=2.0.0
-alembic>=1.12.0
-psycopg2-binary>=2.9.0  # PostgreSQL
-pymongo>=4.6.0  # MongoDB
+# Cloud & Storage
+boto3>=1.26.0  # AWS SDK for DynamoDB and S3
 
-# Airflow
-apache-airflow>=2.8.0
-apache-airflow-providers-postgres>=5.10.0
-apache-airflow-providers-http>=4.8.0
+# Legacy Database Support (Optional)
+# sqlalchemy>=2.0.0
+# alembic>=1.12.0
+# psycopg2-binary>=2.9.0  # PostgreSQL
+# pymongo>=4.6.0  # MongoDB
+
+# Airflow (Optional for production pipelines)
+# apache-airflow>=2.8.0
+# apache-airflow-providers-postgres>=5.10.0
+# apache-airflow-providers-http>=4.8.0
 
 # HTTP & Web Scraping
 requests>=2.31.0

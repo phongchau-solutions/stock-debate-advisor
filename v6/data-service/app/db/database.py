@@ -10,12 +10,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Use SQLite for development (faster, no setup needed)
-# Change to PostgreSQL for production
+# Use PostgreSQL with Docker
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "sqlite:///./stock_debate_data.db"  # SQLite for development
-    # "postgresql://postgres:postgres@localhost:5432/stock_debate_data"  # PostgreSQL for production
+    "postgresql://postgres:postgres@localhost:5433/stock_debate_data"
 )
 
 # MongoDB connection

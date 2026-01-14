@@ -16,7 +16,7 @@ import json
 from app.db import models
 from app.clients.yahoo_finance_client import YahooFinanceClient
 from app.services.financial_data_service import FinancialDataService
-from app.api import v2_endpoints
+from app.api import v3_endpoints
 
 # Create tables
 models.Base.metadata.create_all(bind=engine)
@@ -24,8 +24,8 @@ models.Base.metadata.create_all(bind=engine)
 # Initialize FastAPI app
 app = FastAPI(
     title="Stock Debate Data Service",
-    description="Comprehensive data service for financial data, news, and analysis using Yahoo Finance API",
-    version="2.0.0"
+    description="REST API for financial data, company info, prices, and analysis using local JSON data",
+    version="3.0.0"
 )
 
 # CORS middleware
@@ -37,8 +37,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include v2 API routes
-app.include_router(v2_endpoints.router)
+# Include API route versions
+app.include_router(v3_endpoints.router)  # Local JSON data endpoints
 
 # Logging
 logging.basicConfig(level=logging.INFO)
