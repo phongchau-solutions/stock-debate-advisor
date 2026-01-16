@@ -1,23 +1,25 @@
-"""AWS Bedrock-powered debate engine for Stock Debate Advisor"""
+"""AWS Bedrock-powered debate engine for Stock Debate Advisor using Claude Sonnet 3.5"""
 from typing import Dict, Any
 import json
 import os
 import sys
 import boto3
+from datetime import datetime
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
 from src.core.constants import AGENT_PROMPTS
+from src.core.config import settings
 
 class DataLoaderDynamoDB:
     """Load stock data from DynamoDB tables"""
     
     def __init__(self):
         self.dynamodb = boto3.resource('dynamodb')
-        self.companies_table = self.dynamodb.Table(os.environ.get('COMPANIES_TABLE', 'companies'))
-        self.financial_table = self.dynamodb.Table(os.environ.get('FINANCIAL_REPORTS_TABLE', 'financial_reports'))
-        self.ohlc_table = self.dynamodb.Table(os.environ.get('OHLC_PRICES_TABLE', 'ohlc_prices'))
+        self.companies_table = self.dynamodb.Table(os.environ.get('COMPANIES_TABLE', settings.COMPANIES_TABLE))
+        self.financial_table = self.dynamodb.Table(os.environ.get('FINANCIAL_REPORTS_TABLE', settings.FINANCIAL_REPORTS_TABLE))
+        self.ohlc_table = self.dynamodb.Table(os.environ.get('OHLC_PRICES_TABLE', settings.OHLC_PRICES_TABLE))
     
     def load_stock_data(self, ticker: str) -> Dict[str, Any]:
         try:
@@ -54,15 +56,16 @@ class DataLoaderDynamoDB:
 
 
 class DebateEngineBedrock:
-    """Multi-agent debate engine using Amazon Bedrock"""
+    """Multi-agent debate engine using Amazon Bedrock with Claude Sonnet 3.5"""
     
     def __init__(self):
-        self.bedrock = boto3.client('bedrock-runtime')
-        self.model_id = 'anthropic.claude-3-sonnet-20240229-v1:0'
+        self.bedrock = boto3.client('bedrock-runtime', region_name=settings.BEDROCK_REGION)
+        self.model_id = settings.BEDROCK_MODEL  # Claude Sonnet 3.5: anthropic.claude-3-5-sonnet-20241022-v2:0
         self.data_loader = DataLoaderDynamoDB()
         self.debate_history = []
     
     def _call_bedrock(self, prompt: str) -> str:
+        """Call Claude Sonnet 3.5 via Bedrock"""
         try:
             response = self.bedrock.invoke_model(
                 modelId=self.model_id,
@@ -70,14 +73,14 @@ class DebateEngineBedrock:
                 accept='application/json',
                 body=json.dumps({
                     'anthropic_version': 'bedrock-2023-06-01',
-                    'max_tokens': 1000,
+                    'max_tokens': settings.MAX_TOKENS,
                     'messages': [
                         {
                             'role': 'user',
                             'content': prompt
                         }
                     ],
-                    'temperature': 0.7
+                    'temperature': settings.TEMPERATURE
                 })
             )
             
@@ -183,9 +186,8 @@ class DebateEngineBedrock:
         """Cache debate result in DynamoDB for future lookups"""
         try:
             dynamodb = boto3.resource('dynamodb')
-            debate_table = dynamodb.Table(os.environ.get('DEBATE_RESULTS_TABLE', 'debate_results'))
+            debate_table = dynamodb.Table(os.environ.get('DEBATE_RESULTS_TABLE', settings.DEBATE_RESULTS_TABLE))
             
-            from datetime import datetime
             timestamp = datetime.utcnow().isoformat()
             
             debate_table.put_item(

@@ -5,6 +5,11 @@ import json
 import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime
+import sys
+import os
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
 st.set_page_config(page_title="Stock Debate Advisor", layout="wide")
 
@@ -29,7 +34,7 @@ with col1:
 def load_ohlc_chart(ticker: str) -> go.Figure:
     """Load and plot OHLC data from data store"""
     try:
-        from engine import DataLoader
+        from src.core.engine import DataLoader
         loader = DataLoader()
         stock_data = loader.load_stock_data(ticker)
         

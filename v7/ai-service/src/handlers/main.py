@@ -45,8 +45,8 @@ app.add_middleware(
 async def health():
     return HealthResponse(status="healthy", version="2.0")
 
-@app.post("/debate", response_model=DebateResponse)
-async def start_debate(request: DebateRequest):
+async def _handle_debate_request(request: DebateRequest) -> DebateResponse:
+    """Shared logic for debate endpoints"""
     if not engine:
         raise HTTPException(status_code=503, detail="Engine not initialized")
     
@@ -72,3 +72,13 @@ async def start_debate(request: DebateRequest):
     except Exception as e:
         logger.error(f"Debate error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/debate", response_model=DebateResponse)
+async def start_debate(request: DebateRequest):
+    """Legacy endpoint for backward compatibility"""
+    return await _handle_debate_request(request)
+
+@app.post("/api/v1/debate/start", response_model=DebateResponse)
+async def start_debate_v1(request: DebateRequest):
+    """API v1 endpoint - matches frontend expectation"""
+    return await _handle_debate_request(request)

@@ -14,7 +14,8 @@ interface FrontendStackProps extends cdk.StackProps {
  * FrontendStack: S3 + CloudFront for React SPA
  * - S3 bucket for static assets
  * - CloudFront distribution with caching
- * - API client configuration for Bedrock-backed AI service
+ * - Environment variables injected for deployed API endpoint
+ * - Automatic SPA routing to index.html
  */
 export class FrontendStack extends cdk.Stack {
   readonly bucket: s3.Bucket;
@@ -23,7 +24,7 @@ export class FrontendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: FrontendStackProps) {
     super(scope, id, props);
 
-    // S3 bucket for frontend
+    // S3 bucket for frontend with CloudFront access
     this.bucket = new s3.Bucket(this, 'StockDebateBucket', {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
@@ -32,7 +33,7 @@ export class FrontendStack extends cdk.Stack {
       autoDeleteObjects: false
     });
     cdk.Tags.of(this.bucket).add('Component', 'Frontend');
-    cdk.Tags.of(this.bucket).add('Purpose', 'SPA');
+    cdk.Tags.of(this.bucket).add('Purpose', 'ReactSPA');
 
     // CloudFront Origin Access Identity
     const oai = new cloudfront.OriginAccessIdentity(this, 'OAI', {
@@ -42,38 +43,45 @@ export class FrontendStack extends cdk.Stack {
     // Grant CloudFront read access to S3
     this.bucket.grantRead(oai);
 
-    // CloudFront distribution
+    // Extract API endpoint hostname
+    const apiHost = this.parseApiHost(props.apiEndpoint);
+
+    // CloudFront distribution with API proxy behavior
     this.distribution = new cloudfront.Distribution(this, 'StockDebateDistribution', {
-      comment: 'Stock Debate Advisor Frontend',
+      comment: 'Stock Debate Advisor Frontend - React SPA',
       defaultBehavior: {
-        origin: origins.S3BucketOrigin.withOriginAccessIdentity(this.bucket, { originAccessIdentity: oai }),
+        origin: new origins.S3Origin(this.bucket, {
+          originAccessIdentity: oai
+        }),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
         compress: true,
+        // Rewrite SPA routes to index.html
         functionAssociations: [
           {
             function: new cloudfront.Function(this, 'RewriteToIndex', {
-              code: cloudfront.FunctionCode.fromInline(
-                `function handler(event) {
-                  var request = event.request;
-                  var uri = request.uri;
-                  
-                  // Rewrite SPA routes to index.html for React Router
-                  if (!uri.includes('.') && !uri.startsWith('/api')) {
-                    request.uri = '/index.html';
-                  }
-                  
-                  return request;
-                }`
-              )
+              code: cloudfront.FunctionCode.fromInline(`
+function handler(event) {
+  var request = event.request;
+  var uri = request.uri;
+  
+  // Rewrite SPA routes to index.html (except /api)
+  if (!uri.includes('.') && !uri.startsWith('/api')) {
+    request.uri = '/index.html';
+  }
+  
+  return request;
+}
+              `)
             }),
             eventType: cloudfront.FunctionEventType.VIEWER_REQUEST
           }
         ]
       },
+      // Proxy /api/* requests to the API Gateway
       additionalBehaviors: {
         '/api/*': {
-          origin: new origins.HttpOrigin(this.parseApiHost(props.apiEndpoint), {
+          origin: new origins.HttpOrigin(apiHost, {
             protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY
           }),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
@@ -82,6 +90,7 @@ export class FrontendStack extends cdk.Stack {
           compress: false
         }
       },
+      // SPA error handling - 404 -> index.html
       errorResponses: [
         {
           httpStatus: 403,
@@ -97,6 +106,7 @@ export class FrontendStack extends cdk.Stack {
       minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
       enableIpv6: true,
       enableLogging: true,
+      defaultRootObject: 'index.html',
       logBucket: new s3.Bucket(this, 'DistributionLogBucket', {
         encryption: s3.BucketEncryption.S3_MANAGED,
         removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -107,20 +117,34 @@ export class FrontendStack extends cdk.Stack {
       })
     });
 
-    // Deploy placeholder frontend (in production, this would be built React app)
+    // Deploy frontend dist folder (built React app)
+    const deploymentSource = s3deploy.Source.asset(
+      path.join(__dirname, '../../frontend/dist'),
+      {
+        // If dist doesn't exist, create a minimal placeholder
+        exclude: ['node_modules', '.git']
+      }
+    );
+
     new s3deploy.BucketDeployment(this, 'FrontendDeploy', {
-      sources: [s3deploy.Source.asset(path.join(__dirname, '../../frontend/dist'))],
+      sources: [deploymentSource],
       destinationBucket: this.bucket,
       distributionPaths: ['/*'],
       distribution: this.distribution,
       prune: true
     });
 
-    // Outputs
+    // Outputs for use in other stacks or CI/CD
     new cdk.CfnOutput(this, 'DistributionUrl', {
       value: `https://${this.distribution.domainName}`,
       exportName: 'StockDebateFrontendUrl',
       description: 'CloudFront distribution URL for frontend'
+    });
+
+    new cdk.CfnOutput(this, 'ApiEndpoint', {
+      value: props.apiEndpoint,
+      exportName: 'StockDebateApiEndpoint',
+      description: 'API Gateway endpoint URL'
     });
 
     new cdk.CfnOutput(this, 'S3BucketName', {
@@ -136,27 +160,33 @@ export class FrontendStack extends cdk.Stack {
     });
   }
 
+  /**
+   * Extract hostname from API endpoint URL
+   * Handles both CloudFormation tokens and regular URLs
+   */
   private parseApiHost(apiEndpoint: string): string {
-    // Extract host from URL like https://xyz.execute-api.us-east-1.amazonaws.com/prod/
-    // Handle both real URLs and CloudFormation tokens
     const endpointStr = apiEndpoint.toString();
     
-    // If it's a token or path, extract the domain part
-    if (endpointStr.includes('.execute-api.')) {
-      const match = endpointStr.match(/https?:\/\/([^\/]+)/);
-      if (match) {
-        return match[1];
-      }
+    // Extract hostname from URL pattern
+    const urlMatch = endpointStr.match(/https?:\/\/([^\/]+)/);
+    if (urlMatch) {
+      return urlMatch[1];
     }
     
-    // Fallback: try to parse as URL if possible
+    // Try standard URL parsing
     try {
       const url = new URL(endpointStr);
       return url.hostname;
     } catch (e) {
-      // If parsing fails, extract domain from the string pattern
-      const match = endpointStr.match(/([a-zA-Z0-9-]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com)/);
-      return match ? match[1] : 'api.example.com';
+      // Fallback: extract domain pattern
+      const domainMatch = endpointStr.match(/([a-zA-Z0-9-]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com)/);
+      if (domainMatch) {
+        return domainMatch[1];
+      }
     }
+    
+    // Worst case fallback (shouldn't happen with valid CDK output)
+    console.warn(`Failed to parse API endpoint: ${endpointStr}`);
+    return 'api.example.com';
   }
 }

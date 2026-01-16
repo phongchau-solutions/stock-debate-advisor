@@ -85,7 +85,7 @@ export class DebateAPI {
   private baseUrl: string;
   private timeout: number;
 
-  constructor(baseUrl: string = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api/v1', timeout: number = 30000) {
+  constructor(baseUrl: string = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api', timeout: number = 30000) {
     this.baseUrl = baseUrl.replace(/\/$/, '');
     this.timeout = timeout;
   }
@@ -137,14 +137,14 @@ export class DebateAPI {
    * Check API health
    */
   async healthCheck(): Promise<Record<string, any>> {
-    return this.request('GET', '/');
+    return this.request('GET', '/v1/');
   }
 
   /**
    * Get API configuration
    */
   async getConfig(): Promise<Record<string, any>> {
-    return this.request('GET', '/api/config');
+    return this.request('GET', '/v1/config');
   }
 
   // ==================== Symbols ====================
@@ -153,7 +153,7 @@ export class DebateAPI {
    * Get available stock symbols
    */
   async getSymbols(): Promise<string[]> {
-    const response = await this.request<SymbolListResponse>('GET', '/api/symbols');
+    const response = await this.request<SymbolListResponse>('GET', '/v1/symbols');
     return response.symbols;
   }
 
@@ -165,8 +165,8 @@ export class DebateAPI {
   async startDebate(symbol: string, rounds: number = 3): Promise<string> {
     const response = await this.request<DebateSessionResponse>(
       'POST',
-      '/api/debate/start',
-      { symbol, rounds }
+      '/v1/debate/start',
+      { ticker: symbol, timeframe: '3 months', min_rounds: 1, max_rounds: rounds }
     );
     return response.session_id;
   }
@@ -175,14 +175,14 @@ export class DebateAPI {
    * Get debate status
    */
   async getDebateStatus(sessionId: string): Promise<DebateStatusResponse> {
-    return this.request('GET', `/api/debate/status/${sessionId}`);
+    return this.request('GET', `/v1/debate/status/${sessionId}`);
   }
 
   /**
    * Get debate result
    */
   async getDebateResult(sessionId: string): Promise<DebateResultResponse> {
-    return this.request('GET', `/api/debate/result/${sessionId}`);
+    return this.request('GET', `/v1/debate/result/${sessionId}`);
   }
 
   /**
@@ -253,21 +253,21 @@ export class DebateAPI {
    * List all debate sessions
    */
   async listSessions(): Promise<{ total: number; sessions: Session[] }> {
-    return this.request('GET', '/api/sessions');
+    return this.request('GET', '/v1/sessions');
   }
 
   /**
    * Get session details
    */
   async getSession(sessionId: string): Promise<Record<string, any>> {
-    return this.request('GET', `/api/sessions/${sessionId}`);
+    return this.request('GET', `/v1/sessions/${sessionId}`);
   }
 
   /**
    * Delete a session
    */
   async deleteSession(sessionId: string): Promise<void> {
-    await this.request('DELETE', `/api/sessions/${sessionId}`);
+    await this.request('DELETE', `/v1/sessions/${sessionId}`);
   }
 }
 

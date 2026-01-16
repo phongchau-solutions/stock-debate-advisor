@@ -8,10 +8,14 @@ export default defineConfig({
     open: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8003', // Change to backend API
+        target: process.env.VITE_API_BASE_URL || 'http://localhost:8001/api', // Backend API
         changeOrigin: true,
         secure: false,
       },
     },
+  },
+  define: {
+    // Ensure env vars are available at build time
+    'import.meta.env.VITE_API_BASE_URL': JSON.stringify(process.env.VITE_API_BASE_URL || 'http://localhost:8001/api'),
   },
 });

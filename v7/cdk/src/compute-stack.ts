@@ -15,13 +15,15 @@ interface ComputeStackProps extends cdk.StackProps {
 
 /**
  * ComputeStack: Lambda functions and API Gateway for debate orchestration
- * - Debate Lambda: Orchestrates multi-agent debate via Bedrock
+ * - Data Uploader Lambda: Automatically uploads stock data from data_store to DynamoDB on deployment
+ * - Debate Lambda: Orchestrates multi-agent debate via Bedrock Claude Sonnet 3.5
  * - Health Lambda: Readiness check
  * - API Gateway: REST endpoints with CORS
  */
 export class ComputeStack extends cdk.Stack {
   readonly debateApi: apigateway.RestApi;
   readonly debateLambda: lambda.Function;
+  readonly dataUploaderLambda: lambda.Function;
 
   constructor(scope: Construct, id: string, props: ComputeStackProps) {
     super(scope, id, props);
@@ -35,7 +37,7 @@ export class ComputeStack extends cdk.Stack {
       description: 'Execution role for Stock Debate Lambda functions'
     });
 
-    // Bedrock permissions (claude model)
+    // Bedrock permissions (Claude Sonnet 3.5)
     lambdaRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: [
@@ -47,13 +49,76 @@ export class ComputeStack extends cdk.Stack {
       })
     );
 
-    // DynamoDB permissions
+    // DynamoDB permissions for all tables
     props.companiesTable.grantReadData(lambdaRole);
     props.financialReportsTable.grantReadData(lambdaRole);
     props.ohlcPricesTable.grantReadData(lambdaRole);
     props.debateResultsTable.grantReadWriteData(lambdaRole);
+    
+    // Additional write permissions for data uploader
+    props.companiesTable.grantWriteData(lambdaRole);
+    props.financialReportsTable.grantWriteData(lambdaRole);
+    props.ohlcPricesTable.grantWriteData(lambdaRole);
 
-    // Debate Lambda function
+    // Data Uploader Lambda - uploads data_store to DynamoDB on deployment
+    this.dataUploaderLambda = new lambda.Function(this, 'DataUploaderLambda', {
+      runtime: lambda.Runtime.PYTHON_3_12,
+      handler: 'data_uploader.lambda_handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../data_store'), {
+        bundling: {
+          image: lambda.Runtime.PYTHON_3_12.bundlingImage,
+          command: [
+            'bash', '-c',
+            'cp lambda/data_uploader.py /asset-output/ && cp -r data /asset-output/'
+          ]
+        }
+      }),
+      timeout: cdk.Duration.seconds(900), // 15 minutes for data upload
+      memorySize: 1024,
+      ephemeralStorageSize: cdk.Size.mebibytes(2048),
+      role: lambdaRole,
+      environment: {
+        COMPANIES_TABLE: props.companiesTable.tableName,
+        FINANCIAL_REPORTS_TABLE: props.financialReportsTable.tableName,
+        OHLC_PRICES_TABLE: props.ohlcPricesTable.tableName
+      },
+      description: 'Automatically upload stock data from data_store to DynamoDB'
+    });
+    cdk.Tags.of(this.dataUploaderLambda).add('Component', 'DataStore');
+    cdk.Tags.of(this.dataUploaderLambda).add('Purpose', 'DataUpload');
+
+    // Invoke data uploader Lambda after deployment to populate DynamoDB
+    const dataUploaderProvider = new cdk.custom_resources.Provider(this, 'DataUploaderProvider', {
+      onEventHandler: this.dataUploaderLambda,
+      isCompleteHandler: new lambda.Function(this, 'DataUploaderCompleteHandler', {
+        runtime: lambda.Runtime.PYTHON_3_12,
+        handler: 'index.handler',
+        code: lambda.Code.fromInline(`
+import json
+import boto3
+
+def handler(event, context):
+    return {
+        'IsComplete': True,
+        'Data': {
+            'Status': 'DataUploadTriggered'
+        }
+    }
+        `)
+      })
+    });
+
+    // Custom resource to trigger data upload on stack deployment
+    new cdk.CustomResource(this, 'DataUploadResource', {
+      serviceToken: dataUploaderProvider.serviceToken,
+      properties: {
+        COMPANIES_TABLE: props.companiesTable.tableName,
+        FINANCIAL_REPORTS_TABLE: props.financialReportsTable.tableName,
+        OHLC_PRICES_TABLE: props.ohlcPricesTable.tableName
+      }
+    });
+
+    // Debate Lambda function - uses Claude Sonnet 3.5 via Bedrock
     this.debateLambda = new lambda.Function(this, 'DebateLambda', {
       runtime: lambda.Runtime.PYTHON_3_12,
       handler: 'src.handlers.index.lambda_handler',
@@ -75,12 +140,14 @@ export class ComputeStack extends cdk.Stack {
         FINANCIAL_REPORTS_TABLE: props.financialReportsTable.tableName,
         OHLC_PRICES_TABLE: props.ohlcPricesTable.tableName,
         DEBATE_RESULTS_TABLE: props.debateResultsTable.tableName,
+        BEDROCK_MODEL: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
         AWS_LAMBDA_LOG_LEVEL: 'INFO'
       },
-      description: 'Multi-agent stock debate orchestration using Bedrock'
+      description: 'Multi-agent stock debate orchestration using Bedrock Claude Sonnet 3.5'
     });
     cdk.Tags.of(this.debateLambda).add('Component', 'AI-Service');
     cdk.Tags.of(this.debateLambda).add('Purpose', 'DebateOrchestration');
+    cdk.Tags.of(this.debateLambda).add('Model', 'Claude-Sonnet-3.5');
 
     // Health check Lambda
     const healthLambda = new lambda.Function(this, 'HealthLambda', {
@@ -110,7 +177,7 @@ export class ComputeStack extends cdk.Stack {
     // API Gateway
     this.debateApi = new apigateway.RestApi(this, 'StockDebateApi', {
       restApiName: 'Stock Debate Advisor API',
-      description: 'Multi-agent stock analysis debate system',
+      description: 'Multi-agent stock analysis debate system with Claude Sonnet 3.5',
       deploy: true,
       deployOptions: {
         stageName: 'prod',
@@ -173,6 +240,12 @@ export class ComputeStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'DebateEndpoint', {
       value: `${this.debateApi.url}debate`,
       description: 'Debate analysis endpoint'
+    });
+
+    new cdk.CfnOutput(this, 'DataUploaderLambdaArn', {
+      value: this.dataUploaderLambda.functionArn,
+      exportName: 'DataUploaderLambdaArn',
+      description: 'Data Uploader Lambda ARN for manual invocation'
     });
   }
 }

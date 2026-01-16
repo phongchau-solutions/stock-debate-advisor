@@ -1,7 +1,10 @@
+"""
+Local debate engine for development (file-based data).
+For Lambda/AWS environment, use engine_bedrock.py instead.
+"""
 from typing import Dict, Any
 import json
 from pathlib import Path
-import google.generativeai as genai
 import sys
 import os
 
@@ -11,6 +14,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 from src.core.config import settings
 from src.core.constants import AGENT_PROMPTS
 
+# For local development - use simple mock responses
 class DataLoader:
     def __init__(self):
         self.data_path = settings.DATA_STORE_PATH
@@ -33,24 +37,23 @@ class DataLoader:
         return data
 
 class DebateEngine:
+    """Local debate engine using mock LLM responses for development"""
     def __init__(self):
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.model = genai.GenerativeModel(settings.GEMINI_MODEL)
         self.data_loader = DataLoader()
         self.debate_history = []
 
-    def _call_gemini(self, prompt: str) -> str:
-        try:
-            response = self.model.generate_content(
-                prompt,
-                generation_config=genai.types.GenerationConfig(
-                    temperature=settings.TEMPERATURE,
-                    max_output_tokens=settings.MAX_TOKENS,
-                )
-            )
-            return response.text if response.text else "No response generated"
-        except Exception as e:
-            return f"Error calling Gemini: {str(e)}"
+    def _call_mock_model(self, prompt: str, analyst_type: str = "general") -> str:
+        """Mock LLM response for local development"""
+        responses = {
+            "fundamental": f"Fundamental Analysis: Based on the provided financial data, the stock shows strong fundamentals with improving metrics. P/E ratio is reasonable, ROE is healthy. Recommendation: BUY for long-term investors.",
+            "technical": "Technical Analysis: The technical indicators show a bullish trend. Moving averages are aligned, RSI is in bullish zone. Price support is strong. Recommendation: BUY for medium-term traders.",
+            "sentiment": "Sentiment Analysis: Market sentiment towards this stock is positive. News flow is constructive, analyst ratings improving. Investor confidence is rising. Recommendation: BUY.",
+            "judge": "CONCLUDE - All three analysts agree on a BUY recommendation with high confidence. The convergence of fundamental strength, technical bullish signals, and positive sentiment provides strong evidence for a BUY stance."
+        }
+        # Return the requested analyst response, or default to a neutral analysis
+        if analyst_type in responses:
+            return responses[analyst_type]
+        return f"Analysis: Evaluating {analyst_type} perspective. Recommendation: HOLD based on available information."
 
     def debate(self, ticker: str, timeframe: str, min_rounds: int, max_rounds: int) -> Dict[str, Any]:
         stock_data = self.data_loader.load_stock_data(ticker)
@@ -91,16 +94,11 @@ class DebateEngine:
         
         responses = {}
         for analyst in ["fundamental", "technical", "sentiment"]:
-            prompt = f"{AGENT_PROMPTS[analyst]}\n\n{context}\n\nPrevious discussion:\n{history_context}\n\nProvide your {analyst} analysis with specific data points and recommendation for {timeframe} timeframe."
-            result = self._call_gemini(prompt)
+            result = self._call_mock_model(context, analyst)
             responses[analyst] = result
             self.debate_history.append(f"Round {round_num} {analyst.upper()}: {result[:200]}")
         
-        judge_prompt = f"{AGENT_PROMPTS['judge']}\n\nRound {round_num} Debate Summary:\n" + \
-                      "\n".join([f"{k}: {v[:100]}" for k, v in responses.items()]) + \
-                      f"\n\nEvaluate the debate quality and decide: CONTINUE for more debate (if additional analysis needed) or CONCLUDE if sufficient evidence for {timeframe} timeframe investment decision.\n\nRespond with CONTINUE or CONCLUDE followed by your reasoning."
-        
-        judge_result = self._call_gemini(judge_prompt)
+        judge_result = self._call_mock_model("judge", "judge")
         
         return {
             "round_num": round_num,

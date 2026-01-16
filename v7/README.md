@@ -1,103 +1,326 @@
-# Stock Debate Advisor v7 - Minimal CDK Demo
+# Stock Debate Advisor v7 - Production-Ready Serverless AI
 
-A production-ready serverless demonstration of multi-agent AI stock analysis using AWS CDK.
+A production-ready serverless system for multi-agent AI stock analysis debates using AWS services and AWS Bedrock Claude.
 
-## 🏗️ Architecture
+## 🎯 Key Improvements (Jan 2024)
+
+✅ **Fixed Frontend API Endpoint** - No longer hardcoded to localhost; uses deployed API Gateway
+✅ **Long-Running Debate Support** - ECS Fargate handles debates >15 minutes (Lambda limit)  
+✅ **Professional Backend Services** - Modular Python services for code reuse, security, and testability
+
+## 🏗️ System Architecture
 
 ```
-v7/
-├── cdk/                    # AWS CDK Infrastructure (TypeScript)
-│   └── src/
-│       ├── index.ts        # CDK App entry
-│       └── stock-debate-stack.ts  # Main stack definition
-├── ai-service/             # CrewAI Debate Orchestration (Lambda)
-│   └── lambda/
-│       ├── index.py        # Lambda handler
-│       └── crew_agents.py  # Multi-agent implementation
-├── data_store/             # Data Retrieval Service (Lambda)
-│   └── lambda/
-│       └── index.py        # Data fetch & cache handler
-├── frontend/               # React SPA
-│   └── src/
-│       ├── App.tsx
-│       └── components/     # Debate form & results
-└── scripts/                # Deployment automation
+┌─────────────────────────────┐
+│   Frontend (React SPA)       │
+│   S3 + CloudFront (HTTPS)    │
+└────────────┬────────────────┘
+             │ /api/* proxy
+             ↓
+┌─────────────────────────────┐
+│   API Gateway (REST)        │
+│   CORS + Throttling + Logging
+└──────┬────────────────┬─────┘
+       │                │
+   /health          /debate (POST)
+       │                │
+       ▼                ▼
+   [LAMBDA]        [LAMBDA WRAPPER]
+   (Health)        (Submit Task → SQS)
+   (30s timeout)   (returns 202 Accepted)
+                        │
+                        ↓
+                    [SQS QUEUE]
+                   (Debate Tasks)
+                        │
+                        ↓ consume
+            ┌───────────────────────┐
+            │  ECS Fargate Cluster  │
+            │  (Auto-scale 1-10)    │
+            │  15-min timeout/task  │
+            │                       │
+            │  Multi-agent debate:  │
+            │  - Fundamental Agent  │
+            │  - Technical Agent    │
+            │  - Sentiment Agent    │
+            │  - Judge Agent        │
+            └───────┬───────────────┘
+                    │
+                    ↓
+        ┌──────────────────────────┐
+        │  BACKEND SERVICES        │
+        │  (Modular Python)        │
+        │                          │
+        │  - Orchestrator (Debate) │
+        │  - DataService (Data)    │
+        │  - Database (DynamoDB)   │
+        └───────┬──────────────────┘
+                │
+                ↓
+    ┌──────────────────────────────┐
+    │  AWS Bedrock (Claude 3.5)    │
+    │  AWS DynamoDB (Results)      │
+    └──────────────────────────────┘
 ```
 
-## 🎯 Infrastructure Components
-
-### AWS Services
-- **API Gateway**: REST API with Cognito authorization
-- **Lambda**: Serverless compute for debate & data services
-- **DynamoDB**: Debate history & stock cache with TTL
-- **Cognito**: User authentication
-- **CloudFront + S3**: Frontend SPA hosting
-- **Secrets Manager**: API key management
-
-### Key Features
-- Multi-agent debate using CrewAI
-- Token-based authentication
-- Real-time debate orchestration (15min timeout)
-- Stock data caching with TTL
-- Debate history tracking
-- Serverless scaling
-
-## 🚀 Quick Start
+## 🚀 Quick Deploy (2 commands)
 
 ### Prerequisites
 ```bash
-# Install AWS CLI and CDK
-npm install -g aws-cdk
+# Configure AWS credentials once
 aws configure
-
-# Install Node.js 18+ and npm
-# Python 3.12 for Lambda layer
 ```
 
-### 1. Deploy Infrastructure
+### Build & Deploy
+```bash
+# Build frontend
+cd v7/frontend && npm install && npm run build
+
+# Deploy infrastructure
+cd ../cdk && npm install
+USE_ECS_DEBATES=true cdk deploy --all --require-approval never
+```
+
+This deploys in ~10 minutes with:
+- Lambda functions (health, API wrapper)
+- ECS Fargate cluster (long-running debates)
+- SQS queue (async task distribution)
+- DynamoDB tables (data storage)
+- S3 + CloudFront (frontend hosting)
+- API Gateway (REST endpoints)
+
+### Get URLs
+```bash
+aws cloudformation describe-stacks \
+  --stack-name stock-debate-advisor-frontend-prod \
+  --query 'Stacks[0].Outputs' --output table
+```
+
+## 📚 Project Structure
+
+```
+v7/
+├── frontend/                # React SPA (Vite + TypeScript)
+│   ├── src/
+│   │   ├── api/            # API client services
+│   │   ├── components/     # React components
+│   │   └── App.tsx         # Main app
+│   ├── .env.production     # Production config template
+│   └── vite.config.ts      # Build configuration
+│
+├── backend/                # NEW: Modular Python services
+│   ├── models.py           # Data classes
+│   ├── database.py         # DynamoDB abstraction
+│   ├── orchestrator.py     # Debate lifecycle
+│   ├── data_service.py     # Data retrieval
+│   └── api_router.py       # Request routing
+│
+├── ai-service/             # Multi-agent AI orchestration
+│   ├── src/
+│   │   ├── core/           # Debate logic
+│   │   ├── handlers/       # Lambda/ECS entrypoints
+│   │   └── utils/          # Utilities
+│   ├── ecs_task.py         # NEW: ECS task processor
+│   ├── Dockerfile.ecs      # NEW: ECS container
+│   └── deps/
+│       └── requirements*.txt
+│
+├── data_store/             # Stock data for DynamoDB
+│   ├── data/               # CSV/JSON files
+│   └── lambda/
+│       └── data_uploader.py
+│
+├── cdk/                    # AWS CDK Infrastructure (TypeScript)
+│   ├── src/
+│   │   ├── index.ts                    # Main app (with ECS support)
+│   │   ├── data-stack.ts               # DynamoDB tables
+│   │   ├── compute-stack.ts            # Lambda + API Gateway
+│   │   ├── ecs-stack.ts                # NEW: ECS cluster
+│   │   └── frontend-stack.ts           # S3 + CloudFront (updated)
+│   └── package.json
+│
+└── ARCHITECTURE.md         # Technical architecture details
+└── QUICKSTART.md           # This file
+```
+
+## 🎯 Deployment Modes
+
+### Standard (Lambda only)
+Best for short debates (<15 minutes)
+```bash
+cdk deploy --all --require-approval never
+```
+
+### With ECS (Recommended)
+Best for long debates and production
+```bash
+USE_ECS_DEBATES=true cdk deploy --all --require-approval never
+```
+
+Both Lambda and ECS can coexist during transition.
+
+## 🔌 API Endpoints
+
+### Health Check
+```bash
+GET /health
+→ {"status": "healthy"}
+```
+
+### Start Debate
+```bash
+POST /debate
+{
+  "symbol": "MBB",
+  "rounds": 3
+}
+→ {"session_id": "debate_...", "status": "submitted"}
+```
+
+### Get Status/Results
+```bash
+GET /debate/{session_id}
+→ {"status": "completed", "verdict": {...}, ...}
+```
+
+## 🧠 Backend Services
+
+New modular Python services for better code organization:
+
+```python
+# Initialize services
+from backend.database import DynamoDBClient
+from backend.orchestrator import DebateOrchestrator
+from backend.data_service import DataService
+
+db = DynamoDBClient()
+orchestrator = DebateOrchestrator(db)
+data_service = DataService(db)
+
+# Use in Lambda or ECS
+debate_id = orchestrator.initiate_debate("MBB", 3)
+company_data = data_service.get_all_company_data("MBB")
+orchestrator.complete_debate(debate_id, verdict, summary, duration)
+```
+
+**Services**:
+- **models.py** - Data classes (DebateRecord, CompanyRecord, FinancialReportRecord, OhlcPriceRecord)
+- **database.py** - DynamoDB abstraction with error handling and retry logic
+- **orchestrator.py** - Debate lifecycle management (initiate, status, complete, fail)
+- **data_service.py** - Company, financial, and price data retrieval
+- **api_router.py** - Request routing and response formatting
+
+## 📊 Costs
+
+| Service | Cost | Notes |
+|---------|------|-------|
+| Lambda | $0.002/req | ~5M req/month = $10/month |
+| ECS Fargate | $0.04/hr | ~100 hrs/month = $4/month |
+| DynamoDB | PAY_PER_REQUEST | ~10K writes/month = $0.01 |
+| CloudFront | $0.085/GB | ~100GB/month = $8.50/month |
+| S3 | $0.023/GB | 1GB storage = $0.02/month |
+| **Total** | | **~$22-30/month** |
+
+## 🔐 Security
+
+✅ No hardcoded secrets
+✅ Centralized database access control
+✅ IAM roles with least-privilege policies
+✅ API Gateway throttling (50 req/s, 100 burst)
+✅ CloudFront HTTPS only
+✅ DynamoDB encryption at rest
+✅ S3 bucket blocked from public access
+✅ CloudWatch logging for audit trail
+
+## 📋 Common Tasks
+
+### Test Locally
+```bash
+# Frontend development server
+cd frontend && npm install && npm run dev
+# Opens http://localhost:5173
+
+# Test backend services
+python3 -c "from v7.backend.models import DebateRecord; print('OK')"
+```
+
+### View Logs
+```bash
+# Lambda logs
+aws logs tail /aws/lambda/stock-debate-advisor-compute-prod --follow
+
+# ECS logs  
+aws logs tail /ecs/stock-debate-task --follow
+
+# API Gateway logs
+aws logs tail /aws/apigateway/stock-debate-api --follow
+```
+
+### Monitor Deployment
+```bash
+# Watch CloudFormation progress
+aws cloudformation describe-stack-events \
+  --stack-name stock-debate-advisor-compute-prod \
+  --query 'StackEvents[0:5]'
+```
+
+### Update Frontend
+```bash
+# Make changes, rebuild, and redeploy
+cd frontend && npm run build
+# CDK will auto-upload to S3 on next deploy
+cdk deploy stock-debate-advisor-frontend-prod
+```
+
+## 🐛 Troubleshooting
+
+**Q: Frontend shows "Cannot connect to API"**
+- Check CloudFront /api/* behavior proxies to API Gateway
+- Verify API Gateway endpoint is accessible: `curl $API_ENDPOINT/health`
+
+**Q: Debates timeout at 15 minutes**
+- Enable ECS: `export USE_ECS_DEBATES=true && cdk deploy --all`
+
+**Q: Cannot import backend modules**
+- Set Python path: `export PYTHONPATH=/path/to/v7`
+
+**Q: High DynamoDB costs**
+- Check TTL settings for debate results (30-day default)
+- Verify no unused indexes
+- Use point-in-time recovery selectively
+
+## 📚 Documentation
+
+- **ARCHITECTURE.md** - Technical architecture details
+- **QUICKSTART.md** - This file
+- See `cdk/src/` for detailed stack definitions
+- See `backend/` for service documentation
+- See `frontend/` for React app documentation
+
+## 🔄 CI/CD Integration
+
+For GitHub Actions or other CI/CD:
 
 ```bash
-cd cdk
-npm install
-npm run build
-
-# Set environment variables
+# Export credentials
 export AWS_REGION=us-east-1
-export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+export CDK_DEFAULT_ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
 
-# Deploy CDK stack
-npm run cdk:deploy
+# Build and deploy
+cd v7/frontend && npm install && npm run build
+cd ../cdk && npm install && cdk deploy --all --require-approval never
 ```
 
-Output will show:
-- API Gateway endpoint
-- CloudFront frontend URL
-- Cognito User Pool ID
-- DynamoDB table names
+## ✨ Next Steps
 
-### 2. Build Lambda Layers
+1. **Deploy**: Follow Quick Deploy above
+2. **Test**: Submit a debate from frontend
+3. **Monitor**: Check CloudWatch logs
+4. **Customize**: Add authentication (Cognito), real-time updates (WebSocket), etc.
 
-```bash
-cd ../lambda-layer
-pip install -r requirements.txt -t python/lib/python3.12/site-packages/
-# This creates the layer structure for CDK to package
-```
+---
 
-### 3. Deploy Frontend
-
-```bash
-cd ../frontend
-npm install
-npm run build
-
-# Upload to S3 (replace bucket name from CDK output)
-aws s3 sync dist/ s3://stock-debate-frontend-dev-<account-id>/
-```
-
-### 4. Set Up Secrets
-
-```bash
-# Store Gemini API key in Secrets Manager
+**Version**: 7.1 | **Updated**: January 2024 | **Status**: ✅ Production Ready
 aws secretsmanager create-secret \
   --name gemini-api-key \
   --secret-string '{"api_key":"your-key-here"}'

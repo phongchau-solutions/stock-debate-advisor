@@ -147,9 +147,9 @@ export const marketAnalysisAtom = atom<MarketAnalysis | null>(null);
 /**
  * Run multi-agent debate on a stock
  * Maps to crewai-orchestration endpoints:
- * 1. POST /debate/start - Start debate session
- * 2. GET /debate/status/{session_id} - Poll for completion
- * 3. GET /debate/result/{session_id} - Get results
+ * 1. POST /v1/debate/start - Start debate session
+ * 2. GET /v1/debate/status/{session_id} - Poll for completion
+ * 3. GET /v1/debate/result/{session_id} - Get results
  */
 export const fetchDebateAsync = async (
   params: DebateRequest
@@ -157,10 +157,12 @@ export const fetchDebateAsync = async (
   try {
     // Step 1: Start debate session
     const startResponse = await apiClient.post<any>(
-      '/debate/start',
+      '/v1/debate/start',
       {
-        symbol: params.symbol,
-        rounds: 1
+        ticker: params.symbol,
+        timeframe: '3 months',
+        min_rounds: 1,
+        max_rounds: 1
       }
     );
     
@@ -174,7 +176,7 @@ export const fetchDebateAsync = async (
     
     while (!isComplete && pollCount < maxPolls) {
       const statusResponse = await apiClient.get<any>(
-        `/debate/status/${sessionId}`
+        `/v1/debate/status/${sessionId}`
       );
       
       const status = statusResponse.status || 'in_progress';
@@ -184,7 +186,7 @@ export const fetchDebateAsync = async (
         isComplete = true;
         // Step 3: Get final results
         debateResult = await apiClient.get<any>(
-          `/debate/result/${sessionId}`
+          `/v1/debate/result/${sessionId}`
         );
         break;
       }
