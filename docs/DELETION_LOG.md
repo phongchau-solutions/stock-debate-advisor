@@ -74,6 +74,12 @@ All removals classified as **SAFE** - verified through grep searches that no imp
 - **Status**: ✅ REMOVED
 - **Note**: Renamed jest.config.js to jest.config.cjs due to ES module package type
 
+### 10. v7/cdk/src/stock-debate-stack.ts.old
+- **Reason**: Backup file, original .ts file exists
+- **Size**: 266 lines
+- **Status**: ✅ REMOVED
+- **Note**: Old backup that should not be in version control
+
 ---
 
 ## Phase 2: Unused Dependencies Analysis ✅
@@ -181,8 +187,8 @@ Review with product owner before removing exports from `src/state/debateAtoms.ts
 ## Impact Summary
 
 ### Files Deleted ✅
-- **Total**: 9 files/directories
-- **Lines of Code Removed**: ~1,115 lines (estimated)
+- **Total**: 10 files/directories
+- **Lines of Code Removed**: ~1,381 lines (estimated)
   - src/api.ts: 9 lines
   - src/api/debate-api.ts: ~200 lines
   - src/components/DebateAdvisorApp.tsx: ~150 lines
@@ -192,6 +198,7 @@ Review with product owner before removing exports from `src/state/debateAtoms.ts
   - playwright.config.ts: ~50 lines
   - tests/playwright/: ~50 lines
   - jest.config.cjs (duplicate): ~50 lines
+  - v7/cdk/src/stock-debate-stack.ts.old: 266 lines
 
 ### Dependencies Changed
 - **Removed**: 6 packages (@testing-library/user-event, @storybook/addon-*, @types/jest, playwright)
