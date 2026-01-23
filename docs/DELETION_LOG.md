@@ -235,22 +235,49 @@ Review with product owner before removing exports from `src/state/debateAtoms.ts
 
 ## Future Recommendations
 
-### Storybook Decision Needed
-- Either complete Storybook setup (add missing deps, configure properly)
-- Or remove all Storybook files (.storybook/, *.stories.tsx)
+### Decision Point: Storybook
+**Status**: Partially configured, 3 story files exist
+- **Option A**: Complete Storybook setup
+  - Restore addon-essentials, addon-interactions, addon-links
+  - Add proper Storybook configuration
+  - Create more story files for components
+- **Option B**: Remove Storybook entirely
+  - Delete .storybook/ directory
+  - Remove all *.stories.tsx files
+  - Remove @storybook/* packages
+- **Recommendation**: Remove if not actively used for documentation
 
-### State Management Cleanup
-- Decide on unused exports in `src/state/debateAtoms.ts`
-- Remove if not planned features
-- Document if keeping for future use
+### Debate Atoms & Features
+**Status**: 28 unused exports in src/state/debateAtoms.ts
+- Many atoms and hooks defined but not used in any page/component
+- DebateAdvisorClient class unused
+- Mock data generators unused
+- **Action**: Clarify with product owner if these are planned features
+- **If not planned**: Remove entire debate feature (saves ~800 lines)
+- **If planned**: Keep but document as WIP
+
+### Unused Component Exports
+**Status**: MD3 components have unused named exports
+- MD3Navbar, MD3Tabs exported but only default export used
+- **Impact**: Minimal, just extra exports
+- **Action**: Low priority, can be cleaned up when revisiting components
 
 ### Test Framework Consolidation
-- Choose between Cypress and Playwright
-- Remove the unused framework completely
+**Status**: Using Cypress, removed Playwright
+- **Action**: Ensure Cypress tests are comprehensive
+- **Future**: Consider Jest config improvements for import.meta support
 
 ### CSS Framework Decision
-- If Tailwind not needed, remove references
-- If needed, complete setup properly
+**Status**: Using Tailwind + custom CSS
+- Tailwind configured and actively used
+- FontAwesome for icons
+- **Action**: Document this choice, ensure consistent usage
+
+### ESLint Configuration
+**Status**: Missing .eslintrc configuration
+- **Action**: Add ESLint config file
+- **Suggested**: Use @typescript-eslint/recommended
+- **Priority**: Medium - helps catch issues early
 
 ---
 

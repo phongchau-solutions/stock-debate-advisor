@@ -6,6 +6,15 @@ __pycache__/
 # C extensions
 *.so
 
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.pnpm-debug.log*
+*.tsbuildinfo
+
 # Distribution / packaging
 .Python
 build/
