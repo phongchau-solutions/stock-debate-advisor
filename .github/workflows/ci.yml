@@ -158,31 +158,3 @@ jobs:
           path: v7/frontend/ci-report.md
           retention-days: 7
 
-  summary:
-    name: CI Summary
-    runs-on: ubuntu-latest
-    needs: frontend-ci
-    if: always()
-    steps:
-      - name: Check CI status
-        run: |
-          if [ "${{ needs.frontend-ci.result }}" = "success" ]; then
-            echo "✅ All CI checks passed"
-            exit 0
-          else
-            echo "❌ CI checks failed"
-            exit 1
-          fi
-
-      - name: Comment on PR (if applicable)
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const status = '${{ needs.frontend-ci.result }}' === 'success' ? '✅ Success' : '❌ Failed';
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: `## 🔍 CI Report\n\n**Status:** ${status}\n\n**Checks:**\n- Dependencies installed\n- TypeScript types checked\n- Code linted\n- Format checked\n- Tests executed\n- Production build completed\n\n[View workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})`
-            })
