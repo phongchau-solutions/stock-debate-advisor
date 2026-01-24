@@ -97,16 +97,19 @@ After thorough investigation, most flagged dependencies are actually REQUIRED:
 
 #### Dependencies Removed
 1. **@testing-library/user-event** - ⚠️ REMOVED - Not used in any test files
-2. **@storybook/addon-essentials** - ⚠️ REMOVED - Storybook setup incomplete
-3. **@storybook/addon-interactions** - ⚠️ REMOVED - Storybook setup incomplete
-4. **@storybook/addon-links** - ⚠️ REMOVED - Storybook setup incomplete
-5. **@types/jest** - ⚠️ REMOVED - Not used with current test setup
-6. **playwright** - ✅ REMOVED - Using Cypress instead
+2. **@types/jest** - ⚠️ REMOVED - Not used with current test setup
+3. **playwright** - ✅ REMOVED - Using Cypress instead
 
 #### Dependencies Added (Missing)
 1. **@storybook/react** - ✅ ADDED - Required by story files
-2. **axios-mock-adapter** - ✅ ADDED - Required by test files
-3. **@testing-library/cypress** - ✅ ADDED - Required by Cypress support files
+2. **@storybook/addon-essentials** - ✅ ADDED - Required by .storybook/main.ts
+3. **@storybook/addon-interactions** - ✅ ADDED - Required by .storybook/main.ts
+4. **@storybook/addon-links** - ✅ ADDED - Required by .storybook/main.ts
+5. **axios-mock-adapter** - ✅ ADDED - Required by test files
+6. **@testing-library/cypress** - ✅ ADDED - Required by Cypress support files
+
+#### Version Fixes
+- **@storybook/react** - Updated from ^7.6.0 to ^8.3.0 to match @storybook/react-vite version
 
 #### Script Changes
 - Removed `playwright:test` script from package.json
