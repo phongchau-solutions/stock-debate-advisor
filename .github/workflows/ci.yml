@@ -78,7 +78,7 @@ jobs:
       - name: Upload test coverage
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: v7/frontend/coverage/
@@ -113,7 +113,7 @@ jobs:
           fi
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: v7/frontend/dist/
@@ -152,7 +152,7 @@ jobs:
 
       - name: Upload CI report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ci-report
           path: v7/frontend/ci-report.md
