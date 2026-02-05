@@ -14,6 +14,7 @@ export function formatCurrency(value: number): string {
 
 /**
  * Format a number as percentage
+ * Note: value should be the percentage value (e.g., 5.5 for 5.5%), not a decimal (0.055)
  */
 export function formatPercent(value: number, decimals: number = 2): string {
   const sign = value >= 0 ? '+' : ''
