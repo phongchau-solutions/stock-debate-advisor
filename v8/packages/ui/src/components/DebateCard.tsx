@@ -1,7 +1,7 @@
 import { Card, CardContent, Typography, Chip, Box } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChartLine } from '@fortawesome/free-solid-svg-icons'
-import type { Debate } from '@stock-debate/types'
+import { DebateStatus, DebateVerdict, type Debate } from '@stock-debate/types'
 
 interface DebateCardProps {
   debate: Debate
@@ -9,26 +9,26 @@ interface DebateCardProps {
 }
 
 export function DebateCard({ debate, onClick }: DebateCardProps) {
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: DebateStatus): 'success' | 'info' | 'error' | 'default' => {
     switch (status) {
-      case 'completed':
+      case DebateStatus.COMPLETED:
         return 'success'
-      case 'in_progress':
+      case DebateStatus.IN_PROGRESS:
         return 'info'
-      case 'failed':
+      case DebateStatus.FAILED:
         return 'error'
       default:
         return 'default'
     }
   }
 
-  const getVerdictColor = (verdict: string | null) => {
+  const getVerdictColor = (verdict: DebateVerdict | null): string => {
     switch (verdict) {
-      case 'BUY':
+      case DebateVerdict.BUY:
         return '#4caf50'
-      case 'HOLD':
+      case DebateVerdict.HOLD:
         return '#ff9800'
-      case 'SELL':
+      case DebateVerdict.SELL:
         return '#f44336'
       default:
         return '#9e9e9e'
@@ -48,7 +48,7 @@ export function DebateCard({ debate, onClick }: DebateCardProps) {
           </Typography>
           <Chip 
             label={debate.status.replace('_', ' ')} 
-            color={getStatusColor(debate.status) as any}
+            color={getStatusColor(debate.status)}
             size="small"
           />
         </Box>

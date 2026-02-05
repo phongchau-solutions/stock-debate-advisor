@@ -2,7 +2,7 @@
  * Validate email format
  */
 export function isValidEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
   return emailRegex.test(email)
 }
 
@@ -16,13 +16,14 @@ export function isValidStockSymbol(symbol: string): boolean {
 
 /**
  * Validate password strength
- * Requires: at least 8 characters, 1 uppercase, 1 lowercase, 1 number
+ * Requires: at least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character
  */
 export function isStrongPassword(password: string): boolean {
   if (password.length < 8) return false
   if (!/[A-Z]/.test(password)) return false
   if (!/[a-z]/.test(password)) return false
   if (!/[0-9]/.test(password)) return false
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return false
   return true
 }
 
