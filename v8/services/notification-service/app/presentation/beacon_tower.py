@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timezone
@@ -14,10 +15,17 @@ from app.presentation.pulse_schemas import (
 )
 
 
+@asynccontextmanager
+async def tower_lifecycle(application: FastAPI):
+    """Manages tower startup and shutdown lifecycle"""
+    yield
+
+
 tower_instance = FastAPI(
     title="Beacon Transmission Tower",
     description="Multi-conduit beacon system for real-time pulse propagation",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=tower_lifecycle
 )
 
 
@@ -111,15 +119,3 @@ async def conduit_stream_endpoint(
     except Exception:
         conduit_nexus_singleton.sever_conduit(user_id, conduit_wire)
         raise
-
-
-@tower_instance.on_event("startup")
-async def tower_ignition():
-    """Initialize tower on startup"""
-    pass
-
-
-@tower_instance.on_event("shutdown")
-async def tower_shutdown():
-    """Cleanup on tower shutdown"""
-    pass
