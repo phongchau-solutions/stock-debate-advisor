@@ -1,12 +1,12 @@
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from app.schemas.debate import DebateCreate, DebateResponse, DebateListResponse
-from app.models.debate import Debate, DebateStatus
+
 from app.api.deps import get_current_user, get_db_session
 from app.crud.debate import debate_crud
-import uuid
-from datetime import datetime
+from app.models.debate import DebateStatus
+from app.schemas.debate import DebateCreate, DebateListResponse, DebateResponse
 
 router = APIRouter(prefix="/debates", tags=["debates"])
 
@@ -18,16 +18,16 @@ async def create_debate(
     db: AsyncSession = Depends(get_db_session),
 ):
     """Create a new debate."""
-    
+
     debate_dict = debate_data.model_dump()
     debate_dict["id"] = f"debate_{uuid.uuid4().hex[:12]}"
     debate_dict["user_id"] = user_id
     debate_dict["status"] = DebateStatus.PENDING
-    
+
     debate = await debate_crud.create(db, debate_dict)
-    
+
     # TODO: Trigger debate orchestration in background
-    
+
     return debate
 
 
@@ -38,21 +38,17 @@ async def get_debate(
     db: AsyncSession = Depends(get_db_session),
 ):
     """Get a specific debate."""
-    
+
     debate = await debate_crud.get(db, id=debate_id)
-    
+
     if not debate:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Debate not found"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Debate not found")
+
     if debate.user_id != user_id:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this debate"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this debate"
         )
-    
+
     return debate
 
 
@@ -64,7 +60,7 @@ async def list_debates(
     limit: int = 20,
 ):
     """List user's debates."""
-    
+
     result = await debate_crud.get_multi(
         db,
         offset=skip,
@@ -73,8 +69,5 @@ async def list_debates(
         order_by=["created_at"],
         order_by_desc=True,
     )
-    
-    return DebateListResponse(
-        debates=result["data"],
-        total=result["total_count"]
-    )
+
+    return DebateListResponse(debates=result["data"], total=result["total_count"])

@@ -16,13 +16,10 @@ async def test_create_debate(client: AsyncClient):
     """Test creating a debate."""
     response = await client.post(
         "/api/v1/debates",
-        json={
-            "symbol": "AAPL",
-            "timeframe": "1_month"
-        },
-        headers={"Authorization": "Bearer mock_token"}
+        json={"symbol": "AAPL", "timeframe": "1_month"},
+        headers={"Authorization": "Bearer mock_token"},
     )
-    
+
     assert response.status_code == 201
     data = response.json()
     assert data["symbol"] == "AAPL"

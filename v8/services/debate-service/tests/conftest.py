@@ -1,11 +1,13 @@
-import pytest
 import asyncio
+
+import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from app.main import app
+
 from app.db.base import Base
 from app.db.session import get_db
+from app.main import app
 
 # Test database URL
 TEST_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/test_stock_debate"
@@ -27,10 +29,10 @@ async def db_session():
     """Create a clean database for each test."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
+
     async with TestingSessionLocal() as session:
         yield session
-    
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
@@ -38,13 +40,13 @@ async def db_session():
 @pytest.fixture(scope="function")
 async def client(db_session: AsyncSession):
     """Create a test client with overridden dependencies."""
-    
+
     async def override_get_db():
         yield db_session
-    
+
     app.dependency_overrides[get_db] = override_get_db
-    
+
     async with AsyncClient(app=app, base_url="http://test") as ac:
         yield ac
-    
+
     app.dependency_overrides.clear()
