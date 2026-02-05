@@ -1,0 +1,815 @@
+{
+  "metadata": {
+    "source": "v8/DEVELOPMENT_PLAN.md, v8/IMPLEMENTATION_ROADMAP.md, v8/PROJECT_STATUS.md",
+    "extracted_date": "2026-02-05",
+    "project_board_url": "https://github.com/orgs/phongchau-solutions/projects/2"
+  },
+  "phases": [
+    {
+      "phase_number": 1,
+      "phase_name": "Foundation & Setup",
+      "timeline": "Weeks 1-2",
+      "description": "Set up development environment, create v8 repository structure, design database schemas, set up CI/CD pipeline",
+      "deliverables": [
+        {
+          "id": "P1-D1",
+          "title": "v8 directory structure",
+          "type": "deliverable",
+          "status": "done"
+        },
+        {
+          "id": "P1-D2",
+          "title": "Development environment setup guide",
+          "type": "deliverable",
+          "status": "done"
+        },
+        {
+          "id": "P1-D3",
+          "title": "CI/CD pipeline (GitHub Actions)",
+          "type": "deliverable",
+          "status": "done"
+        },
+        {
+          "id": "P1-D4",
+          "title": "Database schema designs",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P1-D5",
+          "title": "API specifications (OpenAPI/GraphQL schema)",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P1-D6",
+          "title": "Architecture documentation finalized",
+          "type": "deliverable",
+          "status": "done"
+        }
+      ],
+      "user_stories": [
+        {
+          "id": "P1-US1",
+          "title": "As a developer, I need a standardized monorepo structure to organize code efficiently",
+          "acceptance_criteria": "All directories created with README files"
+        },
+        {
+          "id": "P1-US2",
+          "title": "As a developer, I need comprehensive setup documentation to quickly onboard",
+          "acceptance_criteria": "Setup guide with step-by-step instructions"
+        },
+        {
+          "id": "P1-US3",
+          "title": "As a team, we need automated CI/CD to ensure code quality",
+          "acceptance_criteria": "GitHub Actions workflow for build, test, and deploy"
+        }
+      ]
+    },
+    {
+      "phase_number": 2,
+      "phase_name": "Core Infrastructure",
+      "timeline": "Weeks 3-4",
+      "description": "Implement Firebase/GCP infrastructure, set up multi-tier data storage, implement Pub/Sub event bus, set up monitoring stack",
+      "deliverables": [
+        {
+          "id": "P2-D1",
+          "title": "Firebase project configuration",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P2-D2",
+          "title": "Firestore database created",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P2-D3",
+          "title": "Cloud SQL PostgreSQL instance",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P2-D4",
+          "title": "Cloud Storage buckets with lifecycle policies",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P2-D5",
+          "title": "BigQuery dataset",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P2-D6",
+          "title": "Memorystore Redis cluster",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P2-D7",
+          "title": "Pub/Sub topics and subscriptions",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P2-D8",
+          "title": "Cloud Monitoring dashboards",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P2-D9",
+          "title": "Cloud Trace enabled",
+          "type": "deliverable",
+          "status": "pending"
+        }
+      ],
+      "user_stories": [
+        {
+          "id": "P2-US1",
+          "title": "As a developer, I need Firebase infrastructure to deploy serverless functions",
+          "acceptance_criteria": "Firebase project created and configured"
+        },
+        {
+          "id": "P2-US2",
+          "title": "As a system, I need multi-tier storage for different data access patterns",
+          "acceptance_criteria": "Firestore, Cloud SQL, and BigQuery operational"
+        },
+        {
+          "id": "P2-US3",
+          "title": "As an operations team, I need monitoring and logging to track system health",
+          "acceptance_criteria": "Cloud Monitoring dashboards showing key metrics"
+        }
+      ]
+    },
+    {
+      "phase_number": 3,
+      "phase_name": "Data Pipeline Implementation",
+      "timeline": "Weeks 5-7",
+      "description": "Implement scheduled data ingestion, create ETL workflows, set up data quality monitoring, implement caching layer",
+      "deliverables": [
+        {
+          "id": "P3-D1",
+          "title": "Price data pipeline (every 1 minute)",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P3-D2",
+          "title": "Company info pipeline (daily)",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P3-D3",
+          "title": "Financial reports pipeline (daily)",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P3-D4",
+          "title": "News ingestion pipeline (every 15 min)",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P3-D5",
+          "title": "Sentiment analysis pipeline (hourly)",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P3-D6",
+          "title": "Cloud Composer (Airflow) workflows",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P3-D7",
+          "title": "Cloud Scheduler rules",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P3-D8",
+          "title": "Data quality checks",
+          "type": "deliverable",
+          "status": "pending"
+        },
+        {
+          "id": "P3-D9",
+          "title": "Pipeline monitoring dashboards",
+          "type": "deliverable",
+          "status": "pending"
+        }
+      ],
+      "user_stories": [
+        {
+          "id": "P3-US1",
+          "title": "As a user, I need real-time stock prices to make informed decisions",
+          "acceptance_criteria": "Price data updates every minute during market hours"
+        },
+        {
+          "id": "P3-US2",
+          "title": "As a system, I need financial statements to analyze company fundamentals",
+          "acceptance_criteria": "Daily updates of income statements, balance sheets, cash flow"
+        },
+        {
+          "id": "P3-US3",
+          "title": "As a user, I need recent news to understand market sentiment",
+          "acceptance_criteria": "News articles fetched every 15 minutes"
+        },
+        {
+          "id": "P3-US4",
+          "title": "As an operations team, I need data quality monitoring to ensure accuracy",
+          "acceptance_criteria": "Automated data validation with alerts for anomalies"
+        }
+      ]
+    },
+    {
+      "phase_number": 4,
+      "phase_name": "Microservices Development",
+      "timeline": "Weeks 8-11",
+      "description": "Implement all 6 core microservices, set up inter-service communication, implement event handlers, create API endpoints",
+      "deliverables": [
+        {
+          "id": "P4-D1",
+          "title": "User Service - Authentication/authorization",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D2",
+          "title": "User Service - Profile management",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D3",
+          "title": "User Service - Preferences",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D4",
+          "title": "Notification Service - WebSocket infrastructure",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D5",
+          "title": "Notification Service - Email/SMS integration",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D6",
+          "title": "Notification Service - Event subscriptions",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D7",
+          "title": "Data Service - Stock data APIs",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D8",
+          "title": "Data Service - Cache integration",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D9",
+          "title": "Data Service - Search functionality",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D10",
+          "title": "Analytics Service - Trend analysis",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D11",
+          "title": "Analytics Service - Pattern recognition",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D12",
+          "title": "Analytics Service - Basic predictions",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D13",
+          "title": "Debate Service - Debate lifecycle management",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D14",
+          "title": "Debate Service - Status tracking",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D15",
+          "title": "Debate Service - Result storage",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D16",
+          "title": "AI Service - Multi-agent coordination",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D17",
+          "title": "AI Service - Model routing",
+          "type": "service",
+          "status": "pending"
+        },
+        {
+          "id": "P4-D18",
+          "title": "AI Service - Streaming support",
+          "type": "service",
+          "status": "pending"
+        }
+      ],
+      "user_stories": [
+        {
+          "id": "P4-US1",
+          "title": "As a user, I need to authenticate securely to access the platform",
+          "acceptance_criteria": "Firebase Authentication with email/password and Google OAuth"
+        },
+        {
+          "id": "P4-US2",
+          "title": "As a user, I want to manage my profile and preferences",
+          "acceptance_criteria": "Profile API with CRUD operations"
+        },
+        {
+          "id": "P4-US3",
+          "title": "As a user, I want real-time notifications about my debates",
+          "acceptance_criteria": "WebSocket notifications for debate status updates"
+        },
+        {
+          "id": "P4-US4",
+          "title": "As a user, I need access to stock data and financial information",
+          "acceptance_criteria": "REST API endpoints for stock prices, fundamentals, news"
+        },
+        {
+          "id": "P4-US5",
+          "title": "As a user, I want to see analytics and trends for stocks",
+          "acceptance_criteria": "Analytics API with trend analysis and predictions"
+        },
+        {
+          "id": "P4-US6",
+          "title": "As a user, I want to create and manage stock debates",
+          "acceptance_criteria": "Debate API with create, read, update, delete operations"
+        },
+        {
+          "id": "P4-US7",
+          "title": "As a user, I want AI-powered debate analysis",
+          "acceptance_criteria": "AI Service generates multi-perspective debate arguments"
+        }
+      ]
+    },
+    {
+      "phase_number": 5,
+      "phase_name": "AI Orchestration Enhancement",
+      "timeline": "Weeks 12-14",
+      "description": "Implement multi-model support, create intelligent routing logic, enhance agent capabilities, implement conversation memory",
+      "deliverables": [
+        {
+          "id": "P5-D1",
+          "title": "Model router implementation",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P5-D2",
+          "title": "Gemini Pro integration (Google ADK)",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P5-D3",
+          "title": "Gemini Flash integration",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P5-D4",
+          "title": "OpenAI fallback integration",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P5-D5",
+          "title": "Agent framework refactor",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P5-D6",
+          "title": "Tool registry",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P5-D7",
+          "title": "Context management",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P5-D8",
+          "title": "Short-term memory (Redis)",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P5-D9",
+          "title": "Long-term memory (Firestore)",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P5-D10",
+          "title": "Streaming response handler",
+          "type": "feature",
+          "status": "pending"
+        }
+      ],
+      "user_stories": [
+        {
+          "id": "P5-US1",
+          "title": "As a system, I need intelligent model routing to optimize cost and quality",
+          "acceptance_criteria": "Router selects appropriate model based on task complexity"
+        },
+        {
+          "id": "P5-US2",
+          "title": "As a user, I want high-quality AI responses using best available models",
+          "acceptance_criteria": "Gemini Pro for complex analysis, Flash for simple queries"
+        },
+        {
+          "id": "P5-US3",
+          "title": "As a system, I need fallback models for reliability",
+          "acceptance_criteria": "OpenAI models used when Gemini unavailable"
+        },
+        {
+          "id": "P5-US4",
+          "title": "As a user, I want AI to remember context from previous conversations",
+          "acceptance_criteria": "Conversation history maintained across sessions"
+        },
+        {
+          "id": "P5-US5",
+          "title": "As a user, I want to see AI responses in real-time",
+          "acceptance_criteria": "Streaming responses for better UX"
+        }
+      ]
+    },
+    {
+      "phase_number": 6,
+      "phase_name": "Frontend Development",
+      "timeline": "Weeks 15-17",
+      "description": "Rebuild frontend with modern stack, implement real-time features, create advanced visualizations, implement PWA features",
+      "deliverables": [
+        {
+          "id": "P6-D1",
+          "title": "React 18+ migration",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P6-D2",
+          "title": "TanStack Query integration",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P6-D3",
+          "title": "Zustand state management",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P6-D4",
+          "title": "Material Design 3 component library",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P6-D5",
+          "title": "Font Awesome 7 icons",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P6-D6",
+          "title": "WebSocket client implementation",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P6-D7",
+          "title": "Real-time debate updates",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P6-D8",
+          "title": "Advanced charting (Recharts)",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P6-D9",
+          "title": "Analytics dashboard",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P6-D10",
+          "title": "Responsive design",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P6-D11",
+          "title": "PWA manifest and service workers",
+          "type": "feature",
+          "status": "pending"
+        },
+        {
+          "id": "P6-D12",
+          "title": "Storybook component documentation",
+          "type": "feature",
+          "status": "pending"
+        }
+      ],
+      "user_stories": [
+        {
+          "id": "P6-US1",
+          "title": "As a user, I want a modern, intuitive UI",
+          "acceptance_criteria": "Material Design 3 components with consistent styling"
+        },
+        {
+          "id": "P6-US2",
+          "title": "As a user, I want to see real-time debate updates without refreshing",
+          "acceptance_criteria": "WebSocket integration with live status updates"
+        },
+        {
+          "id": "P6-US3",
+          "title": "As a user, I want interactive charts to visualize stock data",
+          "acceptance_criteria": "Recharts integration with price history, trends"
+        },
+        {
+          "id": "P6-US4",
+          "title": "As a mobile user, I want the app to work on my phone",
+          "acceptance_criteria": "Responsive design for mobile, tablet, desktop"
+        },
+        {
+          "id": "P6-US5",
+          "title": "As a user, I want to install the app on my device",
+          "acceptance_criteria": "PWA with offline support"
+        },
+        {
+          "id": "P6-US6",
+          "title": "As a developer, I need component documentation",
+          "acceptance_criteria": "Storybook with all components documented"
+        }
+      ]
+    },
+    {
+      "phase_number": 7,
+      "phase_name": "Integration & Testing",
+      "timeline": "Weeks 18-20",
+      "description": "End-to-end integration testing, performance testing, security testing, load testing",
+      "deliverables": [
+        {
+          "id": "P7-D1",
+          "title": "Integration test suite",
+          "type": "testing",
+          "status": "pending"
+        },
+        {
+          "id": "P7-D2",
+          "title": "API contract tests",
+          "type": "testing",
+          "status": "pending"
+        },
+        {
+          "id": "P7-D3",
+          "title": "End-to-end tests (Playwright)",
+          "type": "testing",
+          "status": "pending"
+        },
+        {
+          "id": "P7-D4",
+          "title": "Performance benchmarks",
+          "type": "testing",
+          "status": "pending"
+        },
+        {
+          "id": "P7-D5",
+          "title": "Load test results (k6/Locust)",
+          "type": "testing",
+          "status": "pending"
+        },
+        {
+          "id": "P7-D6",
+          "title": "Security scan reports (CodeQL, Snyk)",
+          "type": "testing",
+          "status": "pending"
+        },
+        {
+          "id": "P7-D7",
+          "title": "Penetration test findings",
+          "type": "testing",
+          "status": "pending"
+        },
+        {
+          "id": "P7-D8",
+          "title": "Bug fixes and optimizations",
+          "type": "testing",
+          "status": "pending"
+        }
+      ],
+      "user_stories": [
+        {
+          "id": "P7-US1",
+          "title": "As a QA engineer, I need comprehensive test coverage",
+          "acceptance_criteria": "80%+ code coverage with unit and integration tests"
+        },
+        {
+          "id": "P7-US2",
+          "title": "As a user, I expect the system to be fast and responsive",
+          "acceptance_criteria": "p95 latency < 200ms for API calls"
+        },
+        {
+          "id": "P7-US3",
+          "title": "As a user, I need a secure platform",
+          "acceptance_criteria": "Zero critical security vulnerabilities"
+        },
+        {
+          "id": "P7-US4",
+          "title": "As a system, I need to handle high load",
+          "acceptance_criteria": "Support 100 concurrent users without degradation"
+        }
+      ]
+    },
+    {
+      "phase_number": 8,
+      "phase_name": "Deployment & Launch",
+      "timeline": "Weeks 21-22",
+      "description": "Production deployment, data migration from v7, launch preparation, post-launch monitoring",
+      "deliverables": [
+        {
+          "id": "P8-D1",
+          "title": "Production infrastructure deployed",
+          "type": "deployment",
+          "status": "pending"
+        },
+        {
+          "id": "P8-D2",
+          "title": "Data migration completed",
+          "type": "deployment",
+          "status": "pending"
+        },
+        {
+          "id": "P8-D3",
+          "title": "Smoke tests passed",
+          "type": "deployment",
+          "status": "pending"
+        },
+        {
+          "id": "P8-D4",
+          "title": "Monitoring dashboards live",
+          "type": "deployment",
+          "status": "pending"
+        },
+        {
+          "id": "P8-D5",
+          "title": "Alerts configured",
+          "type": "deployment",
+          "status": "pending"
+        },
+        {
+          "id": "P8-D6",
+          "title": "Documentation finalized",
+          "type": "deployment",
+          "status": "pending"
+        },
+        {
+          "id": "P8-D7",
+          "title": "User training materials",
+          "type": "deployment",
+          "status": "pending"
+        },
+        {
+          "id": "P8-D8",
+          "title": "Launch announcement",
+          "type": "deployment",
+          "status": "pending"
+        },
+        {
+          "id": "P8-D9",
+          "title": "Post-launch support plan",
+          "type": "deployment",
+          "status": "pending"
+        }
+      ],
+      "user_stories": [
+        {
+          "id": "P8-US1",
+          "title": "As an operations team, I need a smooth production deployment",
+          "acceptance_criteria": "Zero-downtime deployment with rollback plan"
+        },
+        {
+          "id": "P8-US2",
+          "title": "As a user, I need my data migrated from v7",
+          "acceptance_criteria": "All user data and debates migrated successfully"
+        },
+        {
+          "id": "P8-US3",
+          "title": "As a new user, I need documentation to get started",
+          "acceptance_criteria": "User guide and API documentation available"
+        },
+        {
+          "id": "P8-US4",
+          "title": "As an operations team, I need monitoring for production",
+          "acceptance_criteria": "Real-time dashboards and alerting configured"
+        }
+      ]
+    },
+    {
+      "phase_number": 9,
+      "phase_name": "Optimization & Stabilization",
+      "timeline": "Weeks 23-24",
+      "description": "Monitor production performance, fix production issues, optimize costs, gather user feedback",
+      "deliverables": [
+        {
+          "id": "P9-D1",
+          "title": "Production issues resolved",
+          "type": "optimization",
+          "status": "pending"
+        },
+        {
+          "id": "P9-D2",
+          "title": "Performance optimization report",
+          "type": "optimization",
+          "status": "pending"
+        },
+        {
+          "id": "P9-D3",
+          "title": "Cost optimization recommendations",
+          "type": "optimization",
+          "status": "pending"
+        },
+        {
+          "id": "P9-D4",
+          "title": "User feedback collected",
+          "type": "optimization",
+          "status": "pending"
+        },
+        {
+          "id": "P9-D5",
+          "title": "Next iteration planning",
+          "type": "optimization",
+          "status": "pending"
+        }
+      ],
+      "user_stories": [
+        {
+          "id": "P9-US1",
+          "title": "As an operations team, I need to monitor production health",
+          "acceptance_criteria": "24/7 monitoring with on-call rotation"
+        },
+        {
+          "id": "P9-US2",
+          "title": "As a business, I need to optimize costs",
+          "acceptance_criteria": "Cost analysis and optimization recommendations"
+        },
+        {
+          "id": "P9-US3",
+          "title": "As a product team, I need user feedback",
+          "acceptance_criteria": "User survey and feedback collection system"
+        },
+        {
+          "id": "P9-US4",
+          "title": "As a team, I need to plan next iteration",
+          "acceptance_criteria": "Roadmap for v8.1 with prioritized features"
+        }
+      ]
+    }
+  ]
+}
