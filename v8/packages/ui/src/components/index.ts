@@ -1,3 +1,3 @@
-export { DebateCard } from './DebateCard'
-export { LoadingSpinner } from './LoadingSpinner'
-export { ErrorAlert } from './ErrorAlert'
+export { DebateCard } from './DebateCard.tsx'
+export { LoadingSpinner } from './LoadingSpinner.tsx'
+export { ErrorAlert } from './ErrorAlert.tsx'

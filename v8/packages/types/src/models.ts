@@ -1,4 +1,4 @@
-import { DebateStatus, DebateVerdict, DebateConfidence, Timeframe } from './enums'
+import { DebateStatus, DebateVerdict, DebateConfidence, Timeframe } from './enums.ts'
 
 export interface Debate {
   id: string

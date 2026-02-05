@@ -1,5 +1,5 @@
-import { Debate } from './models'
-import { Timeframe } from './enums'
+import { Debate } from './models.ts'
+import { Timeframe } from './enums.ts'
 
 // Request types
 export interface CreateDebateRequest {

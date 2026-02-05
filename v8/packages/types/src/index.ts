@@ -1,8 +1,8 @@
 // Enums
-export * from './enums'
+export * from './enums.ts'
 
 // Models
-export * from './models'
+export * from './models.ts'
 
 // API types
-export * from './api'
+export * from './api.ts'
