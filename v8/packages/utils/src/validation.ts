@@ -39,3 +39,17 @@ export function sanitizeString(str: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#x27;')
 }
+
+/**
+ * Alias for isValidStockSymbol
+ */
+export function isValidSymbol(symbol: string): boolean {
+  return isValidStockSymbol(symbol)
+}
+
+/**
+ * Alias for sanitizeString
+ */
+export function sanitizeInput(input: string): string {
+  return sanitizeString(input)
+}

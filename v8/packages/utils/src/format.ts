@@ -16,7 +16,8 @@ export function formatCurrency(value: number): string {
  * Format a number as percentage
  */
 export function formatPercent(value: number, decimals: number = 2): string {
-  return `${(value * 100).toFixed(decimals)}%`
+  const sign = value >= 0 ? '+' : ''
+  return `${sign}${value.toFixed(decimals)}%`
 }
 
 /**
@@ -57,4 +58,26 @@ export function formatRelativeTime(date: string | Date): string {
  */
 export function formatRelativeDate(date: string | Date): string {
   return formatRelative(new Date(date), new Date())
+}
+
+/**
+ * Format date with time
+ */
+export function formatDateTime(date: string | Date): string {
+  return format(new Date(date), 'MMM d, yyyy h:mm a')
+}
+
+/**
+ * Format large numbers using compact notation
+ */
+export function formatCompactNumber(value: number): string {
+  return formatLargeNumber(value)
+}
+
+/**
+ * Truncate text with ellipsis
+ */
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text
+  return text.slice(0, maxLength) + '...'
 }

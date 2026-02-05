@@ -1,29 +1,46 @@
-import { Debate } from './models.ts'
-import { Timeframe } from './enums.ts'
+import { Debate, DebateStatus, Timeframe, Verdict, Confidence } from './models'
 
-// Request types
+// Request/Response Types
+
 export interface CreateDebateRequest {
   symbol: string
   timeframe: Timeframe
 }
 
-export interface LoginRequest {
-  email: string
-  password: string
-}
+export interface CreateDebateResponse extends Debate {}
 
-// Response types
-export interface DebateListResponse {
+export interface GetDebateResponse extends Debate {}
+
+export interface ListDebatesResponse {
   debates: Debate[]
   total: number
 }
 
-export interface ApiErrorResponse {
+export interface ApiError {
   detail: string
   status?: number
 }
 
-export interface HealthCheckResponse {
-  status: string
-  service: string
+export interface PaginationParams {
+  skip?: number
+  limit?: number
 }
+
+// WebSocket Messages
+export interface DebateUpdateMessage {
+  type: 'debate_update'
+  debateId: string
+  status: DebateStatus
+  progress?: number
+  message?: string
+}
+
+export interface DebateCompletedMessage {
+  type: 'debate_completed'
+  debateId: string
+  verdict: Verdict
+  confidence: Confidence
+  reasoning: Record<string, any>
+}
+
+export type WebSocketMessage = DebateUpdateMessage | DebateCompletedMessage

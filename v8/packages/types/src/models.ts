@@ -1,4 +1,29 @@
-import { DebateStatus, DebateVerdict, DebateConfidence, Timeframe } from './enums.ts'
+// Debate Models
+export enum DebateStatus {
+  PENDING = 'pending',
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+}
+
+export enum Verdict {
+  BUY = 'BUY',
+  HOLD = 'HOLD',
+  SELL = 'SELL',
+}
+
+export enum Confidence {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+}
+
+export enum Timeframe {
+  ONE_MONTH = '1_month',
+  THREE_MONTHS = '3_months',
+  SIX_MONTHS = '6_months',
+  ONE_YEAR = '1_year',
+}
 
 export interface Debate {
   id: string
@@ -6,50 +31,42 @@ export interface Debate {
   symbol: string
   timeframe: Timeframe
   status: DebateStatus
-  verdict: DebateVerdict | null
-  confidence: DebateConfidence | null
-  reasoning: DebateReasoning | null
-  transcript: DebateTranscript | null
+  verdict?: Verdict
+  confidence?: Confidence
+  reasoning?: Record<string, any>
+  transcript?: Record<string, any>
   createdAt: string
-  updatedAt: string | null
-  completedAt: string | null
+  updatedAt?: string
+  completedAt?: string
 }
 
-export interface DebateReasoning {
-  fundamental: string
-  technical: string
-  sentiment: string
-  summary: string
+// User Models
+export interface User {
+  id: string
+  email: string
+  displayName?: string
+  photoURL?: string
+  createdAt: string
+  updatedAt?: string
 }
 
-export interface DebateTranscript {
-  rounds: DebateRound[]
-  finalVerdict: string
+// Stock Data Models
+export interface StockPrice {
+  symbol: string
+  price: number
+  change: number
+  changePercent: number
+  volume: number
+  timestamp: string
 }
 
-export interface DebateRound {
-  round: number
-  fundamentalAnalyst: string
-  technicalAnalyst: string
-  sentimentAnalyst: string
-  judge: string
-}
-
-export interface Stock {
+export interface CompanyInfo {
   symbol: string
   name: string
   sector: string
   industry: string
   marketCap: number
-  price: number
-  change: number
-  changePercent: number
-}
-
-export interface User {
-  id: string
-  email: string
-  displayName: string | null
-  photoUrl: string | null
-  createdAt: string
+  employees?: number
+  website?: string
+  description?: string
 }
