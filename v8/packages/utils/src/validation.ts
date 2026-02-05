@@ -17,6 +17,7 @@ export function isValidStockSymbol(symbol: string): boolean {
 /**
  * Validate password strength
  * Requires: at least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character
+ * Special characters allowed: !@#$%^&*(),.?":{}|<>
  */
 export function isStrongPassword(password: string): boolean {
   if (password.length < 8) return false
