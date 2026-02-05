@@ -1,0 +1,3 @@
+"""Data Service application package."""
+
+__version__ = "8.0.0"
