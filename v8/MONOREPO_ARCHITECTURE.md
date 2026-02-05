@@ -888,7 +888,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Python 3.14
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.14'
@@ -933,7 +933,7 @@ AI-powered stock analysis platform with multi-agent debates.
 
 - **Monorepo**: All code in one repository
 - **Frontend**: React 18.3 (LTS) + TypeScript + Vite
-- **Backend**: Python 3.14 + FastAPI microservices
+- **Backend**: Python 3.12 + FastAPI microservices
 - **AI**: Google ADK (Gemini models)
 - **Database**: PostgreSQL + Redis
 - **Infrastructure**: Firebase + Google Cloud
@@ -944,7 +944,7 @@ AI-powered stock analysis platform with multi-agent debates.
 
 - Node.js 20+
 - pnpm 9+
-- Python 3.14+
+- Python 3.12+
 - Poetry 1.8+
 - Docker & Docker Compose
 - Just (command runner)

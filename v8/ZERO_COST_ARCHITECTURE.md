@@ -46,12 +46,12 @@ Start with **100% free tier services**, then scale horizontally as needed. The a
                          │
                          ↓
 ┌───────────────────────────────────────────────────────────────┐
-│          Railway Free Tier (Microservices)                     │
-│   • $5 monthly credit (≈ 500 hours)                           │
+│          Render.com Free Tier (Microservices)                  │
+│   • 750 hours/month per service                               │
 │   • Shared CPU, 512MB RAM                                     │
 │   • Deploy from GitHub                                        │
-│   • PostgreSQL included                                       │
-│   Cost: $0 (within $5 credit)                                │
+│   • Auto-sleep after 15 min inactivity                        │
+│   Cost: $0                                                    │
 └────────────────────────┬──────────────────────────────────────┘
                          │
                          ↓
@@ -141,42 +141,42 @@ Start with **100% free tier services**, then scale horizontally as needed. The a
 }
 ```
 
-### 2. Backend Services: Railway Free Tier
+### 2. Backend Services: Render.com Free Tier + Firebase Functions
 
-**Why Railway?**
-- $5/month free credit (500 hours)
-- Built-in PostgreSQL
+**Why Render.com?**
+- True free tier (no credit card required initially)
+- 750 hours/month per service
 - Easy Docker deployment
 - GitHub integration
+- Auto-sleep after 15 minutes of inactivity
 
 **Limits:**
-- $5 credit/month (~500 hours for 1 service)
+- 750 hours/month per service (enough for 1 service)
 - Shared CPU, 512 MB RAM
-- 100 GB outbound bandwidth
+- Spins down after 15 min inactivity (cold starts ~30s)
+- Limited to web services (no background workers on free tier)
 
 **Strategy to Stay Free:**
-- Deploy only 1-2 critical services
-- Use serverless (Firebase Functions) for others
-- Hibernate services during low usage
+- Deploy only 1 critical service on Render
+- Use Firebase Cloud Functions for other services (2M free invocations/month)
+- Optimize for cold starts
+- Use Firebase Cloud Run for services needing more resources (2M requests/month free)
 
-**Services to Deploy on Railway:**
+**Services to Deploy on Render:**
 1. **AI Service** (most resource-intensive)
    - Handles Gemini API calls
    - Debate orchestration
-2. **Data Service** (optional)
+2. **Data Service** (optional, can use Firebase Functions instead)
    - Stock data fetching and caching
 
-**Alternative: Render Free Tier**
-- 750 hours/month free
-- Spins down after 15 min inactivity
-- Good backup option
+**Note:** Railway discontinued their free tier in August 2023. Render.com is the recommended alternative with a true free tier.
 
 ### 3. Database: Neon PostgreSQL Free Tier
 
 **Why Neon?**
 - True serverless (scales to zero)
 - Branching for dev environments
-- Better than free Railway Postgres
+- 0.5 GB free storage
 
 **Limits:**
 - 0.5 GB storage
@@ -428,7 +428,7 @@ jobs:
 | Auth (Firebase) | Unlimited | $0 |
 | Database (Neon) | 0.5 GB | $0 |
 | Cache (Upstash) | 10K commands/day | $0 |
-| Backend (Railway) | $5 credit | $0 |
+| Backend (Render) | 750 hrs/month | $0 |
 | AI (Google AI Studio) | 15 RPM | $0 |
 | CI/CD (GitHub Actions) | 2K minutes | $0 |
 | **Total** | | **$0** |
@@ -439,7 +439,7 @@ jobs:
 **Cost: $0/month**
 - All services on free tier
 - Manual data updates via GitHub Actions
-- Single backend service on Railway
+- Single backend service on Render
 
 #### Stage 2: MVP (100-1,000 users)
 **Cost: ~$50/month**
@@ -449,9 +449,9 @@ jobs:
 | Frontend (Vercel) | Pro | $20 |
 | Database (Neon) | Launch | $19 |
 | Cache (Upstash) | Pay-as-you-go | $10 |
-| Backend (Railway) | 2 services | $20 |
+| Backend (Render) | Starter | $25 |
 | AI (Google AI) | Pay-as-you-go | $10 |
-| **Total** | | **$79** |
+| **Total** | | **$84** |
 
 #### Stage 3: Growing (1K-10K users)
 **Cost: ~$300/month**
@@ -461,11 +461,11 @@ jobs:
 | Frontend (Vercel) | Pro | $20 |
 | Database (Neon) | Scale | $69 |
 | Cache (Upstash) | Pro | $30 |
-| Backend (Railway) | 4 services | $100 |
+| Backend (Render) | Pro | $85 |
 | AI (Google AI) | Pay-as-you-go | $50 |
-| Cloud Storage | S3/GCS | $10 |
+| Cloud Storage | GCS | $10 |
 | Monitoring | Sentry | $20 |
-| **Total** | | **$299** |
+| **Total** | | **$284** |
 
 #### Stage 4: Production (10K+ users)
 **Cost: ~$1,000-2,000/month**
