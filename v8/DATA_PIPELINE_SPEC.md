@@ -153,16 +153,16 @@ The data pipeline system is responsible for:
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Ingestion Layer                           │
-│  • Lambda functions per data source                         │
+│  • Cloud Functions per data source                          │
 │  • Rate limiting & retry logic                              │
 │  • Raw data validation                                      │
-│  • S3 raw data storage                                      │
+│  • Cloud Storage raw data storage                           │
 └────────────┬────────────────────────────────────────────────┘
              │
-             ↓ S3 Event Notification
+             ↓ Cloud Storage Notification → Pub/Sub
 ┌─────────────────────────────────────────────────────────────┐
 │                   Processing Layer                           │
-│  • Step Functions workflow orchestration                    │
+│  • Cloud Composer (Airflow) workflow orchestration          │
 │  • Data cleaning & normalization                            │
 │  • Technical indicator calculation                          │
 │  • Data enrichment                                          │
@@ -171,41 +171,42 @@ The data pipeline system is responsible for:
              ↓
 ┌─────────────────────────────────────────────────────────────┐
 │                    Storage Layer                             │
-│  • DynamoDB (hot data, <90 days)                            │
-│  • Timestream (time-series data)                            │
-│  • RDS Aurora (relational data)                             │
-│  • S3 (processed data lake)                                 │
+│  • Firestore (hot data, <90 days)                           │
+│  • BigQuery (time-series & analytics)                       │
+│  • Cloud SQL (relational data)                              │
+│  • Cloud Storage (processed data lake)                      │
 └────────────┬────────────────────────────────────────────────┘
              │
-             ↓ DynamoDB Streams
+             ↓ Firestore Triggers / Pub/Sub
 ┌─────────────────────────────────────────────────────────────┐
 │                   Serving Layer                              │
-│  • ElastiCache (Redis) - hot cache                          │
-│  • API Gateway - RESTful endpoints                          │
-│  • EventBridge - data update events                         │
+│  • Firestore (real-time subscriptions)                      │
+│  • Cloud Endpoints / API Gateway - RESTful endpoints        │
+│  • Pub/Sub - data update events                             │
+│  • Memorystore (Redis) - optional hot cache                 │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Event-Driven Flow
 
 ```
-EventBridge Scheduler → Lambda (Ingestion) → S3 (Raw)
-                                               │
-                                               ↓
-                                     Step Functions (Process)
-                                               │
-                                               ↓
-                                     Multi-Store Write
-                                     ┌────────┴─────────┐
-                                     │                  │
-                                     ↓                  ↓
-                              DynamoDB             Timestream
-                                     │                  │
-                                     ↓                  ↓
-                              DynamoDB Stream   EventBridge
-                                     │                  │
-                                     ↓                  ↓
-                           Cache Invalidation    Notification
+Cloud Scheduler → Pub/Sub → Cloud Function (Ingestion) → Cloud Storage (Raw)
+                                                                 │
+                                                                 ↓
+                                                    Cloud Composer DAG (Process)
+                                                                 │
+                                                                 ↓
+                                                       Multi-Store Write
+                                                       ┌────────┴─────────┐
+                                                       │                  │
+                                                       ↓                  ↓
+                                                  Firestore            BigQuery
+                                                       │                  │
+                                                       ↓                  ↓
+                                              Firestore Trigger      Pub/Sub Event
+                                                       │                  │
+                                                       ↓                  ↓
+                                             Cache Invalidation    Notification
 ```
 
 ---
@@ -216,43 +217,54 @@ EventBridge Scheduler → Lambda (Ingestion) → S3 (Raw)
 
 **Schedule:** Every 1 minute (market hours: 9:30 AM - 4:00 PM ET, Mon-Fri)
 
-**EventBridge Rule:**
-```json
-{
-  "Name": "PriceDataIngestion",
-  "ScheduleExpression": "rate(1 minute)",
-  "State": "ENABLED",
-  "Targets": [{
-    "Arn": "arn:aws:lambda:us-east-1:123456789:function:PriceIngestionFunction",
-    "Input": "{\"symbols\": [\"AAPL\", \"GOOGL\", \"MSFT\", ...]}"
-  }]
-}
+**Cloud Scheduler Job:**
+```bash
+gcloud scheduler jobs create pubsub price-data-ingestion \
+  --schedule="* * * * *" \
+  --topic=price-data-trigger \
+  --message-body='{"symbols": ["AAPL", "GOOGL", "MSFT"]}' \
+  --time-zone="America/New_York"
 ```
 
-**Lambda Function: `price-ingestion`**
+**Cloud Function: `price-ingestion`**
 
 ```python
-# data-pipelines/ingestion/price-fetcher/handler.py
+# data-pipelines/ingestion/price-fetcher/main.py
 
-import boto3
+import os
+import json
 import requests
 from datetime import datetime
-import json
+from google.cloud import storage
+from google.cloud import pubsub_v1
+import functions_framework
 
-s3 = boto3.client('s3')
+storage_client = storage.Client()
+publisher = pubsub_v1.PublisherClient()
+
 alpha_vantage_key = os.environ['ALPHA_VANTAGE_API_KEY']
+bucket_name = os.environ['RAW_DATA_BUCKET']
+project_id = os.environ['GCP_PROJECT']
 
-def lambda_handler(event, context):
+@functions_framework.cloud_event
+def price_ingestion(cloud_event):
     """
     Fetch real-time price data for given symbols
+    Triggered by Pub/Sub message from Cloud Scheduler
     """
-    symbols = event.get('symbols', [])
+    # Decode Pub/Sub message
+    import base64
+    message_data = base64.b64decode(cloud_event.data["message"]["data"]).decode()
+    event_data = json.loads(message_data)
+    
+    symbols = event_data.get('symbols', [])
     results = []
+    bucket = storage_client.bucket(bucket_name)
     
     for symbol in symbols:
         try:
             # Fetch from Alpha Vantage
-            url = f"https://www.alphavantage.co/query"
+            url = "https://www.alphavantage.co/query"
             params = {
                 'function': 'TIME_SERIES_INTRADAY',
                 'symbol': symbol,
@@ -269,112 +281,165 @@ def lambda_handler(event, context):
             if 'Time Series (1min)' not in data:
                 raise ValueError(f"Invalid response for {symbol}")
             
-            # Save to S3 raw bucket
+            # Save to Cloud Storage raw bucket
             timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
-            key = f"prices/raw/{symbol}/{timestamp}.json"
+            blob_name = f"prices/raw/{symbol}/{timestamp}.json"
+            blob = bucket.blob(blob_name)
             
-            s3.put_object(
-                Bucket=os.environ['RAW_DATA_BUCKET'],
-                Key=key,
-                Body=json.dumps(data),
-                ContentType='application/json',
-                Metadata={
-                    'symbol': symbol,
-                    'source': 'alphavantage',
-                    'timestamp': timestamp
-                }
+            blob.metadata = {
+                'symbol': symbol,
+                'source': 'alphavantage',
+                'timestamp': timestamp
+            }
+            blob.upload_from_string(
+                json.dumps(data),
+                content_type='application/json'
             )
+            
+            # Publish to Pub/Sub for processing
+            topic_path = publisher.topic_path(project_id, 'price-data-ready')
+            message_data = json.dumps({
+                'bucket': bucket_name,
+                'blob': blob_name,
+                'symbol': symbol
+            })
+            publisher.publish(topic_path, message_data.encode('utf-8'))
             
             results.append({
                 'symbol': symbol,
                 'status': 'success',
-                's3_key': key
+                'blob': blob_name
             })
             
         except Exception as e:
-            print(f"Error fetching {symbol}: {str(e)}")
+            # Security fix: Don't log full exception which may contain API keys
+            error_type = e.__class__.__name__
+            print(f"Error fetching {symbol}: {error_type}")
             results.append({
                 'symbol': symbol,
                 'status': 'error',
-                'error': str(e)
+                'error': f"{error_type} while fetching data"
             })
     
     return {
-        'statusCode': 200,
-        'body': json.dumps({
-            'processed': len(results),
-            'results': results
-        })
+        'processed': len(results),
+        'results': results
     }
 ```
 
-**Step Function: `price-processing-workflow`**
-
-```json
-{
-  "Comment": "Process raw price data",
-  "StartAt": "ProcessPriceData",
-  "States": {
-    "ProcessPriceData": {
-      "Type": "Task",
-      "Resource": "arn:aws:lambda:us-east-1:123456789:function:PriceProcessor",
-      "Next": "CalculateTechnicalIndicators"
-    },
-    "CalculateTechnicalIndicators": {
-      "Type": "Task",
-      "Resource": "arn:aws:lambda:us-east-1:123456789:function:TechnicalIndicatorCalculator",
-      "Next": "StoreToDynamoDB"
-    },
-    "StoreToDynamoDB": {
-      "Type": "Task",
-      "Resource": "arn:aws:lambda:us-east-1:123456789:function:DynamoDBWriter",
-      "Next": "StoreToTimestream"
-    },
-    "StoreToTimestream": {
-      "Type": "Task",
-      "Resource": "arn:aws:lambda:us-east-1:123456789:function:TimestreamWriter",
-      "Next": "PublishEvent"
-    },
-    "PublishEvent": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::events:putEvents",
-      "Parameters": {
-        "Entries": [{
-          "Source": "stock-data-pipeline",
-          "DetailType": "PriceDataUpdated",
-          "Detail.$": "$.detail"
-        }]
-      },
-      "End": true
-    }
-  }
-}
-```
-
-**Lambda Function: `price-processor`**
+**Cloud Composer DAG: `price_processing_workflow`**
 
 ```python
-# data-pipelines/processing/price-processor/handler.py
+# dags/price_processing_dag.py
 
-import boto3
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from airflow.providers.google.cloud.operators.functions import CloudFunctionInvokeFunctionOperator
+from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
+from airflow.providers.google.cloud.sensors.pubsub import PubSubPullSensor
+from datetime import datetime, timedelta
+
+default_args = {
+    'owner': 'data-team',
+    'depends_on_past': False,
+    'email_on_failure': True,
+    'email_on_retry': False,
+    'retries': 3,
+    'retry_delay': timedelta(minutes=1),
+}
+
+with DAG(
+    'price_processing_workflow',
+    default_args=default_args,
+    description='Process raw price data and store in Firestore and BigQuery',
+    schedule_interval=None,  # Triggered by Pub/Sub
+    start_date=datetime(2024, 1, 1),
+    catchup=False,
+    tags=['stock-data', 'prices'],
+) as dag:
+
+    # Step 1: Process price data (clean and normalize)
+    process_price_data = CloudFunctionInvokeFunctionOperator(
+        task_id='process_price_data',
+        function_id='price-processor',
+        input_data='{{ dag_run.conf }}',
+        location='us-central1',
+    )
+
+    # Step 2: Calculate technical indicators
+    calculate_indicators = CloudFunctionInvokeFunctionOperator(
+        task_id='calculate_technical_indicators',
+        function_id='technical-indicator-calculator',
+        input_data='{{ task_instance.xcom_pull(task_ids="process_price_data") }}',
+        location='us-central1',
+    )
+
+    # Step 3: Store to Firestore (hot data)
+    store_to_firestore = CloudFunctionInvokeFunctionOperator(
+        task_id='store_to_firestore',
+        function_id='firestore-writer',
+        input_data='{{ task_instance.xcom_pull(task_ids="calculate_technical_indicators") }}',
+        location='us-central1',
+    )
+
+    # Step 4: Store to BigQuery (time-series analytics)
+    store_to_bigquery = CloudFunctionInvokeFunctionOperator(
+        task_id='store_to_bigquery',
+        function_id='bigquery-writer',
+        input_data='{{ task_instance.xcom_pull(task_ids="calculate_technical_indicators") }}',
+        location='us-central1',
+    )
+
+    # Step 5: Publish completion event
+    def publish_completion_event(**context):
+        from google.cloud import pubsub_v1
+        publisher = pubsub_v1.PublisherClient()
+        topic_path = publisher.topic_path('your-project-id', 'price-data-updated')
+        
+        data = context['task_instance'].xcom_pull(task_ids='calculate_technical_indicators')
+        message = json.dumps({
+            'source': 'price-processing-pipeline',
+            'type': 'PriceDataUpdated',
+            'data': data
+        })
+        publisher.publish(topic_path, message.encode('utf-8'))
+    
+    publish_event = PythonOperator(
+        task_id='publish_event',
+        python_callable=publish_completion_event,
+    )
+
+    # Define task dependencies
+    process_price_data >> calculate_indicators >> [store_to_firestore, store_to_bigquery] >> publish_event
+```
+
+**Cloud Function: `price-processor`**
+
+```python
+# data-pipelines/processing/price-processor/main.py
+
 import json
-from decimal import Decimal
+from google.cloud import storage
+import functions_framework
 
-s3 = boto3.client('s3')
+storage_client = storage.Client()
 
-def lambda_handler(event, context):
+@functions_framework.http
+def price_processor(request):
     """
     Clean and normalize price data
     """
-    bucket = event['bucket']
-    key = event['key']
+    request_json = request.get_json()
+    bucket_name = request_json['bucket']
+    blob_name = request_json['blob']
     
-    # Read raw data from S3
-    obj = s3.get_object(Bucket=bucket, Key=key)
-    raw_data = json.loads(obj['Body'].read())
+    # Read raw data from Cloud Storage
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    raw_data = json.loads(blob.download_as_text())
     
     # Extract metadata
-    symbol = obj['Metadata']['symbol']
+    symbol = blob.metadata.get('symbol')
     
     # Parse time series data
     time_series = raw_data.get('Time Series (1min)', {})
@@ -384,10 +449,10 @@ def lambda_handler(event, context):
         processed_data.append({
             'symbol': symbol,
             'timestamp': timestamp,
-            'open': Decimal(values['1. open']),
-            'high': Decimal(values['2. high']),
-            'low': Decimal(values['3. low']),
-            'close': Decimal(values['4. close']),
+            'open': float(values['1. open']),
+            'high': float(values['2. high']),
+            'low': float(values['3. low']),
+            'close': float(values['4. close']),
             'volume': int(values['5. volume'])
         })
     
@@ -401,20 +466,23 @@ def lambda_handler(event, context):
     }
 ```
 
-**Lambda Function: `technical-indicator-calculator`**
+**Cloud Function: `technical-indicator-calculator`**
 
 ```python
-# data-pipelines/processing/technical-indicators/handler.py
+# data-pipelines/processing/technical-indicators/main.py
 
 import pandas as pd
 import numpy as np
+import functions_framework
 
-def lambda_handler(event, context):
+@functions_framework.http
+def technical_indicator_calculator(request):
     """
     Calculate technical indicators (RSI, MACD, Bollinger Bands, etc.)
     """
-    symbol = event['symbol']
-    data = event['data']
+    request_json = request.get_json()
+    symbol = request_json['symbol']
+    data = request_json['data']
     
     # Convert to DataFrame
     df = pd.DataFrame(data)
@@ -462,13 +530,12 @@ def lambda_handler(event, context):
 
 **Schedule:** Daily at 00:00 UTC
 
-**EventBridge Rule:**
-```json
-{
-  "Name": "CompanyInfoIngestion",
-  "ScheduleExpression": "cron(0 0 * * ? *)",
-  "State": "ENABLED"
-}
+**Cloud Scheduler Job:**
+```bash
+gcloud scheduler jobs create pubsub company-info-ingestion \
+  --schedule="0 0 * * *" \
+  --topic=company-info-trigger \
+  --time-zone="UTC"
 ```
 
 **Implementation:** Similar to price pipeline with different data source
@@ -485,8 +552,8 @@ def lambda_handler(event, context):
 
 **Implementation:**
 - Fetch latest news articles for tracked symbols
-- Perform sentiment analysis using AWS Comprehend
-- Store results in DynamoDB with TTL (30 days)
+- Perform sentiment analysis using Cloud Natural Language API
+- Store results in Firestore with TTL (30 days)
 
 ### Pipeline 5: Sentiment Analysis
 
@@ -498,25 +565,45 @@ def lambda_handler(event, context):
 
 **Implementation:**
 ```python
-# sentiment-analyzer/handler.py
+# sentiment-analyzer/main.py
 
-import boto3
-from textblob import TextBlob  # Alternative: AWS Comprehend
+from google.cloud import language_v1
+import functions_framework
 
-comprehend = boto3.client('comprehend')
+language_client = language_v1.LanguageServiceClient()
 
-def analyze_sentiment(text):
+@functions_framework.http
+def analyze_sentiment(request):
     """
-    Analyze sentiment using AWS Comprehend
+    Analyze sentiment using Cloud Natural Language API
     """
-    response = comprehend.detect_sentiment(
-        Text=text[:5000],  # Max 5000 bytes
-        LanguageCode='en'
+    request_json = request.get_json()
+    text = request_json.get('text', '')
+    
+    # Prepare the document
+    document = language_v1.Document(
+        content=text[:10000],  # Max 10KB for sentiment analysis
+        type_=language_v1.Document.Type.PLAIN_TEXT
     )
     
+    # Detect sentiment
+    sentiment = language_client.analyze_sentiment(
+        request={'document': document}
+    ).document_sentiment
+    
+    # Classify sentiment category
+    score = sentiment.score
+    if score > 0.25:
+        category = 'POSITIVE'
+    elif score < -0.25:
+        category = 'NEGATIVE'
+    else:
+        category = 'NEUTRAL'
+    
     return {
-        'sentiment': response['Sentiment'],  # POSITIVE, NEGATIVE, NEUTRAL, MIXED
-        'scores': response['SentimentScore']
+        'sentiment': category,
+        'score': score,
+        'magnitude': sentiment.magnitude
     }
 ```
 
@@ -695,37 +782,47 @@ def check_consistency(data_source_a, data_source_b):
 | **Alpha Vantage API** | Premium subscription | $50 |
 | **Financial Modeling Prep** | Starter plan | $29 |
 | **Finnhub API** | Starter plan | $99 |
-| **Lambda Invocations** | 500K invocations, 512MB, 10s avg | $15 |
-| **Step Functions** | 100K state transitions | $2.50 |
-| **S3 Storage** | 500GB raw + processed | $15 |
-| **S3 Requests** | 1M PUT, 10M GET | $10 |
-| **DynamoDB** | 5M writes, 50M reads (on-demand) | $30 |
-| **Timestream** | 50GB storage, 500K writes | $40 |
-| **EventBridge** | 500K events | $0.50 |
-| **CloudWatch** | Logs 50GB, metrics | $20 |
-| **Total** | | **~$311/month** |
+| **Cloud Functions** | 500K invocations, 512MB, 10s avg | $9 |
+| **Cloud Composer** | Small environment (1 worker) | $50 |
+| **Cloud Storage** | 500GB raw + processed | $10 |
+| **Cloud Storage Operations** | 1M writes, 10M reads | $5 |
+| **Firestore** | 5M writes, 50M reads | $25 |
+| **BigQuery** | 50GB storage, 500K writes, 10GB queries | $35 |
+| **Pub/Sub** | 500K messages | $2 |
+| **Cloud Scheduler** | 10 jobs | $1 |
+| **Cloud Logging** | 50GB logs | $25 |
+| **Cloud Monitoring** | Metrics and dashboards | $8 |
+| **Total** | | **~$348/month** |
 
 ### Optimization Strategies
 
 1. **API Cost Reduction**
    - Use free tier APIs for development
-   - Cache frequently accessed data (ElastiCache)
+   - Cache frequently accessed data (Firestore or Memorystore)
    - Batch API requests where possible
 
-2. **Lambda Optimization**
-   - Right-size memory allocation
-   - Reduce cold starts (provisioned concurrency for critical functions)
-   - Use Lambda layers for dependencies
+2. **Cloud Functions Optimization**
+   - Right-size memory allocation (use 256MB if possible)
+   - Reduce cold starts with min instances for critical functions
+   - Use environment variables for configuration
+   - Bundle dependencies efficiently
 
 3. **Storage Optimization**
-   - S3 Lifecycle policies (archive to Glacier after 90 days)
-   - DynamoDB TTL (auto-delete old data)
-   - Compress large data files
+   - Cloud Storage lifecycle policies (archive to Nearline/Coldline after 90 days)
+   - Firestore TTL (auto-delete old documents)
+   - Compress large data files before upload
+   - Use BigQuery partitioning and clustering
 
 4. **Processing Optimization**
    - Process data in batches (not individual records)
-   - Use Step Functions Express (cheaper for high-volume)
-   - Parallel processing where possible
+   - Use Cloud Run for longer-running tasks (cheaper than Functions)
+   - Parallel processing in Cloud Composer DAGs
+   - Use BigQuery for heavy analytics instead of client-side processing
+
+5. **Cloud Composer Optimization**
+   - Use smallest environment size during development
+   - Consider Cloud Workflows for simpler orchestration needs
+   - Schedule resource-intensive DAGs during off-peak hours
 
 ---
 
