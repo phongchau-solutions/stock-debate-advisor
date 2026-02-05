@@ -2,7 +2,7 @@
 
 from typing import Optional
 
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db

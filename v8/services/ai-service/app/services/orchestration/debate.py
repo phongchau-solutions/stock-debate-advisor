@@ -3,7 +3,7 @@
 import uuid
 from typing import Optional
 
-from app.schemas.ai import AIProvider, AgentRole
+from app.schemas.ai import AIProvider
 from app.services.providers.factory import get_ai_provider
 
 

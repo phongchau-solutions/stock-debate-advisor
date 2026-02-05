@@ -1,7 +1,5 @@
 """Test shared database utilities."""
 
-import pytest
-
 from shared_db.base import Base
 from shared_db.session import create_db_engine, create_session_maker
 

@@ -12,7 +12,7 @@ router = APIRouter(prefix="/judge", tags=["judge"])
 @router.post("", response_model=JudgeResponse, status_code=status.HTTP_200_OK)
 async def judge_debate(
     request: JudgeRequest,
-    user_id: str = Depends(get_optional_user),
+    user_id: str = Depends(get_optional_user),  # For future audit logging
 ):
     """
     Get a judge's verdict on a debate.

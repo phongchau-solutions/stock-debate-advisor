@@ -17,7 +17,7 @@ router = APIRouter(prefix="/price", tags=["prices"])
 async def create_stock_price(
     price_data: StockPriceCreate,
     db: AsyncSession = Depends(get_db_session),
-    user_id: str = Depends(get_optional_user),
+    user_id: str = Depends(get_optional_user),  # For future audit logging
 ):
     """Create a new stock price entry."""
     price_dict = price_data.model_dump()
@@ -38,9 +38,6 @@ async def get_stock_prices(
     limit: int = 100,
 ):
     """Get stock prices for a symbol, optionally filtered by date range."""
-    # Build filters
-    filters = {"symbol": symbol.upper()}
-
     # Note: FastCRUD may not support date range filters directly
     # This is a simplified version. In production, you'd use more sophisticated filtering
     result = await stock_price_crud.get_multi(

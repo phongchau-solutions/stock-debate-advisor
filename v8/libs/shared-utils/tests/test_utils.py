@@ -1,7 +1,5 @@
 """Test shared utils."""
 
-import pytest
-
 from shared_utils.logging import get_logger, setup_logger
 from shared_utils.validation import (
     normalize_stock_symbol,

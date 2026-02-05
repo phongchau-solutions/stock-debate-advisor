@@ -1,9 +1,8 @@
 """User endpoints."""
 
 from datetime import datetime, timezone
-from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db_session

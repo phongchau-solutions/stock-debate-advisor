@@ -1,8 +1,8 @@
 """Authentication endpoints."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db_session
@@ -14,7 +14,6 @@ from app.schemas.user import (
     RegisterResponse,
     UserResponse,
 )
-from app.services.firebase import verify_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

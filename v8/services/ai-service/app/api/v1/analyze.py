@@ -12,7 +12,7 @@ router = APIRouter(prefix="/analyze", tags=["analysis"])
 @router.post("", response_model=AnalysisResponse, status_code=status.HTTP_200_OK)
 async def analyze_stock(
     request: AnalysisRequest,
-    user_id: str = Depends(get_optional_user),
+    user_id: str = Depends(get_optional_user),  # For future audit logging
 ):
     """
     Run a stock debate analysis with bull and bear agents.

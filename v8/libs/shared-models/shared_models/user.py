@@ -5,13 +5,8 @@ from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import Column, DateTime, String, Text
-from sqlalchemy.orm import DeclarativeBase
 
-
-class Base(DeclarativeBase):
-    """Base class for SQLAlchemy models."""
-
-    pass
+from shared_models.base import Base
 
 
 class User(Base):

@@ -84,6 +84,6 @@ class OpenAIProvider(AIProviderBase):
         return {
             "verdict": response[:200],
             "reasoning": response,
-            "winner": "bear",
+            "winner": AgentRole.BEAR,
             "confidence": 0.70,
         }

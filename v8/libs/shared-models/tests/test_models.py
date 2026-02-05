@@ -1,7 +1,5 @@
 """Test shared models."""
 
-import pytest
-
 from shared_models.debate import DebateCreate, DebateStatus
 from shared_models.stock import StockCreate
 from shared_models.user import UserCreate

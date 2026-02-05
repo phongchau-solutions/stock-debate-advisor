@@ -1,5 +1,3 @@
-import asyncio
-
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -14,14 +12,6 @@ TEST_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/test_
 
 engine = create_async_engine(TEST_DATABASE_URL, echo=True)
 TestingSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create an instance of the default event loop for the test session."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest.fixture(scope="function")

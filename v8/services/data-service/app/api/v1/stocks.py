@@ -14,7 +14,7 @@ router = APIRouter(prefix="/stocks", tags=["stocks"])
 async def create_stock(
     stock_data: StockCreate,
     db: AsyncSession = Depends(get_db_session),
-    user_id: str = Depends(get_optional_user),
+    user_id: str = Depends(get_optional_user),  # For future audit logging
 ):
     """Create a new stock entry."""
     # Check if stock already exists

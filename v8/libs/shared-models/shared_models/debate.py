@@ -6,7 +6,8 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 from sqlalchemy import Column, DateTime, Enum as SQLEnum, String, Text
-from sqlalchemy.orm import DeclarativeBase
+
+from shared_models.base import Base
 
 
 class DebateStatus(str, Enum):
@@ -16,12 +17,6 @@ class DebateStatus(str, Enum):
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
-
-
-class Base(DeclarativeBase):
-    """Base class for SQLAlchemy models."""
-
-    pass
 
 
 class Debate(Base):

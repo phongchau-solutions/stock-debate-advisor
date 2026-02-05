@@ -79,6 +79,6 @@ class GeminiProvider(AIProviderBase):
         return {
             "verdict": response[:200],  # Truncate for demo
             "reasoning": response,
-            "winner": "bull",  # TODO: Extract from response
+            "winner": AgentRole.BULL,
             "confidence": 0.75,  # TODO: Extract from response
         }

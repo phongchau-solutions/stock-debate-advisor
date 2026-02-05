@@ -73,6 +73,6 @@ class ClaudeProvider(AIProviderBase):
         return {
             "verdict": response[:200],
             "reasoning": response,
-            "winner": "bull",
+            "winner": AgentRole.BULL,
             "confidence": 0.80,
         }
