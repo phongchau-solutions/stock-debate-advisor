@@ -1,6 +1,6 @@
 """Debate-related models and schemas."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 
@@ -36,8 +36,13 @@ class Debate(Base):
     bull_agent_id = Column(String, nullable=True)
     bear_agent_id = Column(String, nullable=True)
     judge_verdict = Column(Text, nullable=True)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
 
 
 class DebateBase(BaseModel):

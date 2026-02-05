@@ -1,6 +1,6 @@
 """Stock database models."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Column, DateTime, Float, String, Text
 
@@ -19,8 +19,13 @@ class Stock(Base):
     industry = Column(String(100), nullable=True)
     market_cap = Column(Float, nullable=True)
     description = Column(Text, nullable=True)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
 
 
 class StockPrice(Base):
@@ -36,4 +41,4 @@ class StockPrice(Base):
     low = Column(Float, nullable=False)
     close = Column(Float, nullable=False)
     volume = Column(Float, nullable=False)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
