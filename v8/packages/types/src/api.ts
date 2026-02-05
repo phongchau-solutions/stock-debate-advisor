@@ -1,4 +1,4 @@
-import { Debate, Stock, User } from './models'
+import { Debate } from './models'
 import { Timeframe } from './enums'
 
 // Request types
