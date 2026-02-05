@@ -1,6 +1,6 @@
 """Authentication endpoints."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,8 +38,8 @@ async def login(
         firebase_uid="firebase_123",
         display_name="Test User",
         photo_url="https://example.com/photo.jpg",
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
     )
 
     return LoginResponse(
@@ -71,8 +71,8 @@ async def register(
         firebase_uid="firebase_456",
         display_name=request.display_name or "New User",
         photo_url=request.photo_url,
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
     )
 
     return RegisterResponse(

@@ -1,6 +1,6 @@
 """User endpoints."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -33,8 +33,8 @@ async def get_current_user_info(
         firebase_uid=current_user.get("firebase_uid"),
         display_name=current_user.get("display_name"),
         photo_url=current_user.get("photo_url"),
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
     )
 
 
@@ -59,8 +59,8 @@ async def update_current_user(
         firebase_uid=current_user.get("firebase_uid"),
         display_name=user_update.display_name or current_user.get("display_name"),
         photo_url=user_update.photo_url or current_user.get("photo_url"),
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
     )
 
 
@@ -84,6 +84,6 @@ async def get_user_by_id(
         firebase_uid="firebase_123",
         display_name="Test User",
         photo_url="https://example.com/photo.jpg",
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
     )
