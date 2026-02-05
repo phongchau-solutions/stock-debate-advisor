@@ -9,7 +9,8 @@ export default function Login() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Login:', { email, password })
+    // TODO: Implement actual login logic with Firebase
+    console.log('Login attempt for:', email)
   }
 
   return (
