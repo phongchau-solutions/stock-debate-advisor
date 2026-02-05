@@ -1,3 +1,2 @@
-export * from './format.ts'
-export * from './validation.ts'
-export * from './constants.ts'
+export * from './format'
+export * from './validation'
