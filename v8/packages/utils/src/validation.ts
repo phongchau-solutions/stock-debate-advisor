@@ -7,9 +7,9 @@ export function isValidEmail(email: string): boolean {
 }
 
 /**
- * Validate stock symbol (1-10 uppercase letters)
+ * Validate stock symbol format
  */
-export function isValidStockSymbol(symbol: string): boolean {
+export function isValidSymbol(symbol: string): boolean {
   const symbolRegex = /^[A-Z]{1,10}$/
   return symbolRegex.test(symbol)
 }
@@ -29,27 +29,13 @@ export function isStrongPassword(password: string): boolean {
 }
 
 /**
- * Sanitize string for display (prevent XSS)
+ * Sanitize user input (remove dangerous characters)
  */
-export function sanitizeString(str: string): string {
-  return str
+export function sanitizeInput(input: string): string {
+  return input
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#x27;')
-}
-
-/**
- * Alias for isValidStockSymbol
- */
-export function isValidSymbol(symbol: string): boolean {
-  return isValidStockSymbol(symbol)
-}
-
-/**
- * Alias for sanitizeString
- */
-export function sanitizeInput(input: string): string {
-  return sanitizeString(input)
 }

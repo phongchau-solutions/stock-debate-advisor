@@ -9,12 +9,12 @@ interface DebateCardProps {
 }
 
 export function DebateCard({ debate, onClick }: DebateCardProps) {
-  const statusIcon = {
+  const statusIcon = ({
     [DebateStatus.PENDING]: faClock,
     [DebateStatus.IN_PROGRESS]: faClock,
     [DebateStatus.COMPLETED]: faCheck,
     [DebateStatus.FAILED]: faXmark,
-  }[debate.status]
+  }[debate.status]) ?? faClock
 
   const statusColor = {
     [DebateStatus.PENDING]: 'default',
