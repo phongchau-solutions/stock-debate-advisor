@@ -45,7 +45,7 @@ export interface User {
   id: string
   email: string
   displayName?: string
-  photoUrl?: string
+  photoUrl?: string  // Note: lowercase 'url' for backend compatibility (photo_url)
   createdAt: string
   updatedAt?: string
 }
