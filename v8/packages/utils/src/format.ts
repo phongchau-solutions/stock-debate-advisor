@@ -14,28 +14,27 @@ export function formatCurrency(value: number): string {
 
 /**
  * Format a number as percentage
+ * Note: value should be the percentage value (e.g., 5.5 for 5.5%), not a decimal (0.055)
+ * @example
+ * formatPercent(5.5) // returns "+5.50%"
+ * formatPercent(-2.3) // returns "-2.30%"
+ * formatPercent(10.123, 1) // returns "+10.1%"
  */
 export function formatPercent(value: number, decimals: number = 2): string {
-  return `${(value * 100).toFixed(decimals)}%`
+  const sign = value >= 0 ? '+' : ''
+  return `${sign}${value.toFixed(decimals)}%`
 }
 
 /**
- * Format a large number with abbreviations (K, M, B, T)
+ * Format large numbers (e.g., 1.5M, 2.3B)
  */
-export function formatLargeNumber(value: number): string {
-  if (value >= 1_000_000_000_000) {
-    return `${(value / 1_000_000_000_000).toFixed(2)}T`
-  }
-  if (value >= 1_000_000_000) {
-    return `${(value / 1_000_000_000).toFixed(2)}B`
-  }
-  if (value >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(2)}M`
-  }
-  if (value >= 1_000) {
-    return `${(value / 1_000).toFixed(2)}K`
-  }
-  return value.toFixed(2)
+const compactFormatter = new Intl.NumberFormat('en-US', {
+  notation: 'compact',
+  compactDisplay: 'short',
+})
+
+export function formatCompactNumber(value: number): string {
+  return compactFormatter.format(value)
 }
 
 /**
@@ -57,4 +56,19 @@ export function formatRelativeTime(date: string | Date): string {
  */
 export function formatRelativeDate(date: string | Date): string {
   return formatRelative(new Date(date), new Date())
+}
+
+/**
+ * Format date with time
+ */
+export function formatDateTime(date: string | Date): string {
+  return format(new Date(date), 'MMM d, yyyy h:mm a')
+}
+
+/**
+ * Truncate text with ellipsis
+ */
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text
+  return text.slice(0, maxLength) + '...'
 }

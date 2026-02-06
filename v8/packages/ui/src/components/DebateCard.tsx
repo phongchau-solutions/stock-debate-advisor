@@ -1,7 +1,7 @@
 import { Card, CardContent, Typography, Chip, Box } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChartLine } from '@fortawesome/free-solid-svg-icons'
-import { DebateStatus, DebateVerdict, type Debate } from '@stock-debate/types'
+import { faCheck, faClock, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { Debate, DebateStatus } from '@stock-debate/types'
 
 interface DebateCardProps {
   debate: Debate
@@ -9,81 +9,64 @@ interface DebateCardProps {
 }
 
 export function DebateCard({ debate, onClick }: DebateCardProps) {
-  const getStatusColor = (status: DebateStatus): 'success' | 'info' | 'error' | 'default' => {
-    switch (status) {
-      case DebateStatus.COMPLETED:
-        return 'success'
-      case DebateStatus.IN_PROGRESS:
-        return 'info'
-      case DebateStatus.FAILED:
-        return 'error'
-      default:
-        return 'default'
-    }
-  }
+  const statusIcon = ({
+    [DebateStatus.PENDING]: faClock,
+    [DebateStatus.IN_PROGRESS]: faClock,
+    [DebateStatus.COMPLETED]: faCheck,
+    [DebateStatus.FAILED]: faXmark,
+  }[debate.status]) ?? faClock
 
-  const getVerdictColor = (verdict: DebateVerdict | null): string => {
-    switch (verdict) {
-      case DebateVerdict.BUY:
-        return '#4caf50'
-      case DebateVerdict.HOLD:
-        return '#ff9800'
-      case DebateVerdict.SELL:
-        return '#f44336'
-      default:
-        return '#9e9e9e'
-    }
-  }
+  const statusColor = {
+    [DebateStatus.PENDING]: 'default',
+    [DebateStatus.IN_PROGRESS]: 'info',
+    [DebateStatus.COMPLETED]: 'success',
+    [DebateStatus.FAILED]: 'error',
+  }[debate.status] as 'default' | 'info' | 'success' | 'error'
 
   return (
-    <Card 
-      sx={{ cursor: onClick ? 'pointer' : 'default', '&:hover': onClick ? { boxShadow: 3 } : {} }}
+    <Card
+      sx={{ cursor: onClick ? 'pointer' : 'default' }}
       onClick={onClick}
     >
       <CardContent>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h6" component="div" display="flex" alignItems="center" gap={1}>
-            <FontAwesomeIcon icon={faChartLine} />
+          <Typography variant="h6" component="div">
             {debate.symbol}
           </Typography>
-          <Chip 
-            label={debate.status.replace('_', ' ')} 
-            color={getStatusColor(debate.status)}
+          <Chip
+            icon={<FontAwesomeIcon icon={statusIcon} />}
+            label={debate.status}
+            color={statusColor}
             size="small"
           />
         </Box>
         
-        <Typography variant="body2" color="text.secondary" gutterBottom>
+        <Typography color="text.secondary" gutterBottom>
           Timeframe: {debate.timeframe.replace('_', ' ')}
         </Typography>
         
         {debate.verdict && (
-          <Box mt={2} display="flex" gap={1} alignItems="center">
-            <Typography variant="body2" fontWeight="bold">
-              Verdict:
-            </Typography>
-            <Chip 
+          <Box mt={2}>
+            <Chip
               label={debate.verdict}
-              sx={{ 
-                backgroundColor: getVerdictColor(debate.verdict),
-                color: 'white',
-                fontWeight: 'bold'
-              }}
-              size="small"
+              color={
+                debate.verdict === 'BUY'
+                  ? 'success'
+                  : debate.verdict === 'SELL'
+                  ? 'error'
+                  : 'warning'
+              }
             />
             {debate.confidence && (
-              <Chip 
-                label={debate.confidence}
+              <Chip
+                label={`${debate.confidence} confidence`}
                 variant="outlined"
                 size="small"
+                sx={{ ml: 1 }}
               />
             )}
           </Box>
         )}
-        
-        <Typography variant="caption" color="text.secondary" display="block" mt={2}>
-          Created: {new Date(debate.createdAt).toLocaleDateString()}
-        </Typography>
       </CardContent>
     </Card>
   )
